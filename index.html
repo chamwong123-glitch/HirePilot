@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HirePilot</title>
+<meta name="description" content="Upload a job description, your CV and your interviewers' profiles. Get a prep plan, tailored mock questions with model answers, and voice mock interviews rated on content, confidence and communication.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --surface-2:#f0f2f5; --border:#dfe3e8; --text:#17202b; --muted:#5b6675;
+  --accent:#2f5bd3; --accent-ink:#ffffff; --accent-soft:#e7edfb; --good:#1f8a4c; --good-soft:#e3f4ea;
+  --warn:#b26a00; --warn-soft:#fbf0dc; --bad:#c23a3a; --bad-soft:#fbe6e6; --rec:#d93025;
+  --shadow:0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.08); --radius:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1318; --surface:#171c23; --surface-2:#1e252e; --border:#2c3540; --text:#e6eaef; --muted:#9aa5b3;
+    --accent:#7d9cf0; --accent-ink:#0f1318; --accent-soft:#1f2a45; --good:#4cc47f; --good-soft:#15301f;
+    --warn:#e4a64a; --warn-soft:#33260f; --bad:#ef7676; --bad-soft:#3a1a1a; --rec:#ff6b5e;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1318; --surface:#171c23; --surface-2:#1e252e; --border:#2c3540; --text:#e6eaef; --muted:#9aa5b3;
+  --accent:#7d9cf0; --accent-ink:#0f1318; --accent-soft:#1f2a45; --good:#4cc47f; --good-soft:#15301f;
+  --warn:#e4a64a; --warn-soft:#33260f; --bad:#ef7676; --bad-soft:#3a1a1a; --rec:#ff6b5e;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent)}
+h1,h2,h3,h4{line-height:1.25;margin:0 0 .5em}
+h2{font-size:1.35rem} h3{font-size:1.05rem} h4{font-size:.95rem}
+p{margin:0 0 .8em}
+ul{margin:.2em 0 .8em;padding-left:1.2em} li{margin:.2em 0}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+header.top{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.bar{display:flex;align-items:center;gap:12px;min-height:56px}
+.brand{font-weight:700;font-size:1.05rem;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-left:auto}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{border:0;background:none;color:var(--muted);font:inherit;font-weight:500;padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+nav.tabs button:disabled{opacity:.45;cursor:not-allowed}
+main{padding:24px 0 64px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.muted{color:var(--muted)} .small{font-size:.87rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+label.f{display:block;font-weight:600;margin:0 0 6px}
+textarea,input[type=text],input[type=url],select{width:100%;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+textarea{min-height:170px;resize:vertical}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.rec{background:var(--rec);border-color:var(--rec);color:#fff}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.btn.sm{padding:5px 10px;font-size:.87rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.file{font-size:.87rem}
+.file input{display:none}
+.chip{display:inline-block;font-size:.78rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);margin-right:4px}
+.chip.accent{background:var(--accent-soft);color:var(--accent)}
+.chip.good{background:var(--good-soft);color:var(--good)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)}
+.person{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;background:var(--surface-2)}
+.person .grid2{gap:8px;margin-bottom:8px}
+.person textarea{min-height:90px}
+.notice{padding:12px 14px;border-radius:10px;background:var(--warn-soft);color:var(--text);border:1px solid transparent;margin-bottom:16px}
+.notice.info{background:var(--accent-soft)}
+.notice.err{background:var(--bad-soft)}
+.empty{text-align:center;padding:40px 16px}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.kpi .v{font-size:1.6rem;font-weight:700} .kpi .l{color:var(--muted);font-size:.85rem}
+.meter{height:8px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin-top:6px}
+.meter>i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.list-plain{list-style:none;padding:0;margin:0}
+.list-plain>li{padding:10px 0;border-top:1px solid var(--border)}
+.list-plain>li:first-child{border-top:0}
+details.q{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:10px}
+details.q>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:10px;align-items:flex-start}
+details.q>summary::-webkit-details-marker{display:none}
+details.q>summary .qt{font-weight:600;flex:1}
+details.q>summary .caret{transition:transform .15s;color:var(--muted)}
+details.q[open]>summary .caret{transform:rotate(90deg)}
+details.q .body{padding:0 16px 16px}
+.answer{white-space:pre-wrap;background:var(--surface-2);border-radius:8px;padding:12px 14px}
+.star{display:grid;grid-template-columns:90px 1fr;gap:4px 12px;font-size:.92rem}
+.star b{color:var(--muted);font-weight:600}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.filters button{border:1px solid var(--border);background:var(--surface);color:var(--muted);font:inherit;font-size:.85rem;padding:4px 10px;border-radius:999px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stage{text-align:center;padding:28px 20px}
+.stage .who{color:var(--muted);font-size:.9rem;margin-bottom:6px}
+.stage .question{font-size:1.3rem;font-weight:600;max-width:720px;margin:0 auto 18px}
+.timer{font-variant-numeric:tabular-nums;font-size:1.1rem;font-weight:600}
+.pulse{width:12px;height:12px;border-radius:50%;background:var(--rec);display:inline-block;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.live{min-height:3em;text-align:left;max-width:720px;margin:14px auto 0;color:var(--muted);font-size:.95rem}
+.level{height:6px;max-width:240px;margin:10px auto 0;background:var(--surface-2);border-radius:999px;overflow:hidden}
+.level>i{display:block;height:100%;width:0;background:var(--good);transition:width .08s}
+.scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}
+.score{border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.score .n{font-size:1.4rem;font-weight:700}
+.score .n small{font-size:.8rem;color:var(--muted);font-weight:500}
+.metrics{display:flex;gap:14px;flex-wrap:wrap;font-size:.87rem;color:var(--muted);margin-bottom:10px}
+.metrics b{color:var(--text)}
+table.hist{width:100%;border-collapse:collapse;font-size:.92rem}
+table.hist th,table.hist td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border)}
+table.hist th{color:var(--muted);font-weight:600}
+.tablewrap{overflow-x:auto}
+dialog{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);max-width:560px;width:calc(100% - 32px);padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+.hide{display:none!important}
+.mt{margin-top:12px} .mb0{margin-bottom:0}
+@media (max-width:600px){ .bar{flex-wrap:wrap;padding:8px 0} nav.tabs{margin-left:0;width:100%} .stage .question{font-size:1.12rem} }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap bar">
+    <div class="brand"><span class="dot"></span>HirePilot</div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="setup">1. Your interview</button>
+      <button data-tab="plan">2. Prep plan</button>
+      <button data-tab="questions">3. Questions</button>
+      <button data-tab="mock">4. Mock interview</button>
+      <button data-tab="history">5. Progress</button>
+      <button data-tab="settings" aria-label="Settings">⚙</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banner"></div>
+
+  <!-- 1. SETUP -->
+  <section data-view="setup">
+    <div class="card">
+      <h2>Tell us about the interview</h2>
+      <p class="muted">Paste text or upload files (PDF, Word or text). Everything stays in this browser until you ask the coach to analyse it.</p>
+      <div class="grid2">
+        <div>
+          <div class="spread"><label class="f" for="jd">Job description <span class="chip bad">required</span></label>
+            <label class="file btn ghost sm">Upload<input type="file" data-target="jd" accept=".pdf,.docx,.txt,.md"></label></div>
+          <textarea id="jd" placeholder="Paste the full job ad: responsibilities, requirements, about the company…"></textarea>
+        </div>
+        <div>
+          <div class="spread"><label class="f" for="cv">Your CV / résumé</label>
+            <label class="file btn ghost sm">Upload<input type="file" data-target="cv" accept=".pdf,.docx,.txt,.md"></label></div>
+          <textarea id="cv" placeholder="Paste your CV. Model answers are built from your real experience, so the more detail the better."></textarea>
+        </div>
+      </div>
+      <div class="grid2 mt">
+        <div>
+          <label class="f" for="stage">Interview stage</label>
+          <select id="stage">
+            <option>Phone / recruiter screen</option>
+            <option selected>First interview with hiring manager</option>
+            <option>Panel interview</option>
+            <option>Technical / skills interview</option>
+            <option>Case study / presentation</option>
+            <option>Final round / executive</option>
+            <option>Graduate / internship interview</option>
+          </select>
+        </div>
+        <div>
+          <label class="f" for="notes">Anything else? <span class="muted small">(optional)</span></label>
+          <input type="text" id="notes" placeholder="e.g. changing careers, 6-month gap, visa sponsorship, 45-minute video call">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="spread"><h3 class="mb0">Interviewers <span class="muted small">(optional)</span></h3>
+        <button class="btn sm" id="addPerson">+ Add interviewer</button></div>
+      <p class="muted small mt">Paste public professional info, e.g. their LinkedIn headline, About section, experience and recent posts. The coach uses it to predict what they'll focus on and how to build rapport.</p>
+      <div id="people"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn primary" id="analyse">Build my prep plan →</button>
+      <button class="btn ghost" id="loadSample">Fill in a sample</button>
+      <button class="btn ghost" id="clearAll">Start over</button>
+    </div>
+  </section>
+
+  <!-- 2. PLAN -->
+  <section data-view="plan" class="hide"><div id="planOut"></div></section>
+
+  <!-- 3. QUESTIONS -->
+  <section data-view="questions" class="hide">
+    <div class="card">
+      <div class="spread">
+        <div><h2 class="mb0">Mock questions &amp; model answers</h2>
+          <p class="muted small mb0">Model answers use your CV. Fill in anything in [square brackets] with your own details.</p></div>
+        <div class="row">
+          <input type="text" id="qFocus" placeholder="Focus on… (optional)" style="width:200px">
+          <select id="qCount" style="width:auto"><option value="6">6 more</option><option value="10" selected>10 more</option><option value="15">15 more</option></select>
+          <button class="btn primary" id="genQ">Generate</button>
+        </div>
+      </div>
+    </div>
+    <div class="filters" id="qFilters"></div>
+    <div id="qList"></div>
+  </section>
+
+  <!-- 4. MOCK -->
+  <section data-view="mock" class="hide">
+    <div id="mockSetup" class="card">
+      <h2>Mock interview</h2>
+      <p class="muted">The interviewer asks each question aloud. Answer out loud as you would in the real interview. You'll get scores for <b>content</b>, <b>structure</b>, <b>confidence</b> and <b>communication</b>, plus a better version of your answer.</p>
+      <div class="grid2">
+        <div><label class="f" for="mLen">Number of questions</label>
+          <select id="mLen"><option>3</option><option selected>5</option><option>8</option><option>10</option></select></div>
+        <div><label class="f" for="mPick">Which questions</label>
+          <select id="mPick"><option value="mix">A realistic mix</option><option value="unpractised">Ones I haven't practised</option><option value="weak">My weakest (lowest scores)</option><option value="saved">Starred questions</option></select></div>
+      </div>
+      <div class="row mt">
+        <label class="row small"><input type="checkbox" id="mSpeak" checked> Read questions aloud</label>
+        <label class="row small"><input type="checkbox" id="mType"> Type answers instead of speaking</label>
+      </div>
+      <div class="row mt"><button class="btn primary" id="mStart">Start interview</button></div>
+      <p class="muted small mt mb0">Tip: use headphones and a quiet room. Live transcription works best in Chrome or Edge. Aim for about 1–2 minutes per answer.</p>
+    </div>
+    <div id="mockRun" class="hide"></div>
+  </section>
+
+  <!-- 5. HISTORY -->
+  <section data-view="history" class="hide"><div id="histOut"></div></section>
+
+  <!-- SETTINGS -->
+  <section data-view="settings" class="hide">
+    <div class="card">
+      <h2>Settings</h2>
+      <label class="f" for="sUrl">AI coach address (Cloudflare Worker)</label>
+      <input type="url" id="sUrl" placeholder="https://hirepilot-coach.<your-name>.workers.dev/">
+      <p class="muted small">See <code>worker/README.md</code> for the 10-minute setup. Leave it empty to use <b>demo mode</b>, which shows sample output so you can try the app.</p>
+      <div class="grid2">
+        <div><label class="f" for="sLang">Speech language / accent</label>
+          <select id="sLang">
+            <option value="en-US">English (US)</option><option value="en-GB">English (UK)</option><option value="en-AU">English (Australia)</option>
+            <option value="en-SG">English (Singapore)</option><option value="en-IN">English (India)</option><option value="en-HK">English (Hong Kong)</option>
+            <option value="en-CA">English (Canada)</option><option value="en-NZ">English (New Zealand)</option>
+          </select></div>
+        <div><label class="f" for="sTheme">Appearance</label>
+          <select id="sTheme"><option value="">Match system</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+      </div>
+      <div class="row mt"><button class="btn primary" id="sSave">Save</button><button class="btn" id="sExport">Export my data</button><button class="btn ghost" id="sWipe">Delete all data</button></div>
+      <p class="muted small mt mb0">Your documents and results are stored only in this browser. When you use the coach, the relevant text and your recording are sent through your Worker to the AI model and are not kept.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+'use strict';
+/* =========================================================
+   State
+   ========================================================= */
+const KEY = 'hirepilot.v1';
+const CATS = ['Motivation & fit','Behavioural','Role-specific','Situational','Culture & values','Curveball'];
+const FILLERS = ['um','uh','erm','er','ah','like','you know','sort of','kind of','basically','actually','literally','i mean','so yeah'];
+const blank = () => ({ inputs:{ jd:'', cv:'', stage:'First interview with hiring manager', notes:'', people:[] },
+  plan:null, questions:[], sessions:[], settings:{ url:'', lang:'en-US', theme:'' } });
+let S = load();
+function load(){
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.inputs) return Object.assign(blank(), s); } catch(e){}
+  return blank();
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ banner('Could not save to this browser (storage full or blocked). Export your data from Settings.', 'err'); } }
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const arr = v => Array.isArray(v) ? v : [];
+function banner(msg, kind){ $('#banner').innerHTML = msg ? `<div class="notice ${kind||''}">${msg}</div>` : ''; }
+
+/* =========================================================
+   Tabs
+   ========================================================= */
+let tab = 'setup';
+function show(t){
+  tab = t;
+  $$('[data-view]').forEach(v => v.classList.toggle('hide', v.dataset.view !== t));
+  $$('#tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'page' : 'false'));
+  banner('');
+  if (t === 'plan') renderPlan();
+  if (t === 'questions') renderQuestions();
+  if (t === 'history') renderHistory();
+  if (t === 'settings') fillSettings();
+  window.scrollTo(0, 0);
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) show(b.dataset.tab); });
+
+/* =========================================================
+   Setup form
+   ========================================================= */
+function readForm(){
+  S.inputs.jd = $('#jd').value; S.inputs.cv = $('#cv').value;
+  S.inputs.stage = $('#stage').value; S.inputs.notes = $('#notes').value;
+  S.inputs.people = $$('#people .person').map(el => ({
+    name: el.querySelector('[data-k=name]').value, title: el.querySelector('[data-k=title]').value,
+    profile: el.querySelector('[data-k=profile]').value }));
+}
+function fillForm(){
+  $('#jd').value = S.inputs.jd; $('#cv').value = S.inputs.cv;
+  $('#stage').value = S.inputs.stage; $('#notes').value = S.inputs.notes;
+  $('#people').innerHTML = '';
+  S.inputs.people.forEach(addPerson);
+}
+function addPerson(p){
+  p = p || { name:'', title:'', profile:'' };
+  const el = document.createElement('div');
+  el.className = 'person';
+  el.innerHTML = `<div class="grid2"><input type="text" data-k="name" placeholder="Name" value="${esc(p.name)}">
+    <input type="text" data-k="title" placeholder="Job title, e.g. Head of Data, DBS Bank" value="${esc(p.title)}"></div>
+    <textarea data-k="profile" placeholder="Paste their LinkedIn About, experience, education, recent posts…">${esc(p.profile)}</textarea>
+    <div class="spread mt"><label class="file btn ghost sm">Upload profile PDF<input type="file" accept=".pdf,.docx,.txt,.md"></label>
+    <button class="btn ghost sm" data-rm>Remove</button></div>`;
+  el.querySelector('[data-rm]').onclick = () => { el.remove(); readForm(); save(); };
+  el.querySelector('input[type=file]').onchange = async e => {
+    const t = await readFile(e.target.files[0]); if (t) { el.querySelector('[data-k=profile]').value = t; readForm(); save(); }
+  };
+  $('#people').appendChild(el);
+}
+$('#addPerson').onclick = () => { if ($$('#people .person').length >= 6) return banner('Up to 6 interviewers.'); addPerson(); };
+document.querySelector('[data-view=setup]').addEventListener('input', () => { readForm(); save(); });
+document.querySelector('[data-view=setup]').addEventListener('change', () => { readForm(); save(); });
+$$('input[type=file][data-target]').forEach(inp => inp.onchange = async e => {
+  const t = await readFile(e.target.files[0]); if (t) { $('#' + inp.dataset.target).value = t; readForm(); save(); }
+  e.target.value = '';
+});
+$('#clearAll').onclick = () => {
+  if (!confirm('Clear the job, CV, interviewers, plan and questions? Your practice history is kept.')) return;
+  const keep = { sessions:S.sessions, settings:S.settings };
+  S = Object.assign(blank(), keep); save(); fillForm(); updateTabs();
+};
+$('#loadSample').onclick = () => { S.inputs = JSON.parse(JSON.stringify(SAMPLE.inputs)); save(); fillForm(); };
+
+/* ---- file reading: PDF via pdf.js, Word via mammoth, loaded only when needed ---- */
+const libs = {};
+function script(src){ return libs[src] || (libs[src] = new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); })); }
+async function readFile(f){
+  if (!f) return '';
+  try {
+    const name = f.name.toLowerCase();
+    if (name.endsWith('.pdf')) {
+      await script('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await pdfjsLib.getDocument({ data: await f.arrayBuffer() }).promise;
+      let out = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const c = await (await pdf.getPage(i)).getTextContent();
+        let line = '', lastY = null, lines = [];
+        c.items.forEach(it => { const y = it.transform[5]; if (lastY !== null && Math.abs(y - lastY) > 2) { lines.push(line); line = ''; } line += it.str; lastY = y; });
+        lines.push(line); out.push(lines.join('\n'));
+      }
+      const text = out.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+      if (!text) banner('That PDF has no selectable text (it may be a scan). Please paste the text instead.');
+      return text;
+    }
+    if (name.endsWith('.docx')) {
+      await script('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+      return (await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value.trim();
+    }
+    return (await f.text()).trim();
+  } catch (e) { banner('Could not read that file. Try pasting the text instead.', 'err'); return ''; }
+}
+
+/* =========================================================
+   Talking to the coach (Worker) - or demo mode
+   ========================================================= */
+const demo = () => !S.settings.url;
+const ERRORS = { rate_limited:'The coach is busy. Wait a minute and try again.', out_of_credit:'The AI credit limit has been reached. Top up the OpenRouter key.',
+  too_large:'That recording is too long. Keep answers under about 3 minutes.', origin_not_allowed:'This site isn\'t allowed to use the Worker. Check ALLOWED_ORIGINS.',
+  not_configured:'The Worker is missing its OpenRouter key.', bad_request:'The coach needs a job description (and a question to rate).' };
+async function coach(kind, body){
+  if (demo()) { await new Promise(r => setTimeout(r, 900)); return DEMO[kind](body); }
+  let res;
+  try { res = await fetch(S.settings.url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(Object.assign({ kind }, body)) }); }
+  catch (e) { throw new Error('Could not reach the coach. Check your connection and the Worker address in Settings.'); }
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok || !j.data) throw new Error(ERRORS[j.error] || 'The coach had a problem (' + (j.error || res.status) + '). Please try again.');
+  return j.data;
+}
+function docs(){
+  return { jd:S.inputs.jd, cv:S.inputs.cv, stage:S.inputs.stage, notes:S.inputs.notes,
+    interviewers:S.inputs.people.filter(p => p.name || p.profile) };
+}
+function busy(el, msg){ el.innerHTML = `<div class="card empty"><span class="spinner"></span> <span class="muted">${esc(msg)}</span></div>`; }
+
+$('#analyse').onclick = async () => {
+  readForm(); save();
+  if (S.inputs.jd.trim().length < 80) return banner('Please paste the job description first (at least a few lines).');
+  show('plan'); busy($('#planOut'), 'Reading the job, your CV and the interviewers… this takes about 30 seconds.');
+  try {
+    S.plan = await coach('plan', docs()); S.plan._at = Date.now(); save(); updateTabs(); renderPlan();
+    if (!S.questions.length) genQuestions(10, '');
+  } catch (e) { $('#planOut').innerHTML = ''; banner(esc(e.message), 'err'); }
+};
+
+/* =========================================================
+   Prep plan
+   ========================================================= */
+function renderPlan(){
+  const p = S.plan, out = $('#planOut');
+  if (!p) { out.innerHTML = `<div class="card empty"><p>No plan yet.</p><button class="btn primary" onclick="show('setup')">Add your interview details</button></div>`; return; }
+  const r = p.role || {}, f = p.fit || {};
+  const fitClass = f.score >= 75 ? 'good' : f.score >= 50 ? 'warn' : 'bad';
+  out.innerHTML = `
+  ${demo() ? '<div class="notice info">Demo mode: this is sample output. Add your Worker address in Settings for real analysis.</div>' : ''}
+  <div class="card">
+    <div class="spread"><div><h2 class="mb0">${esc(r.title || 'Your role')}${r.company ? ' · ' + esc(r.company) : ''}</h2>
+      <div class="mt">${[r.field, r.seniority, S.inputs.stage].filter(Boolean).map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div></div>
+      <div class="row"><button class="btn" onclick="show('questions')">Practise questions</button><button class="btn primary" onclick="show('mock')">Start a mock interview</button></div></div>
+    <p class="mt mb0">${esc(r.summary)}</p>
+  </div>
+  <div class="card">
+    <div class="spread"><h3 class="mb0">How well you fit</h3><span class="chip ${fitClass}">${esc(f.score)}/100</span></div>
+    <div class="meter"><i style="width:${Math.max(0, Math.min(100, +f.score || 0))}%;background:var(--${fitClass})"></i></div>
+    <p class="mt">${esc(f.verdict)}</p>
+    <div class="grid2">
+      <div><h4>Strengths to lead with</h4><ul>${arr(f.strengths).map(s => `<li><b>${esc(s.point)}</b><br><span class="muted small">${esc(s.evidence)}</span></li>`).join('')}</ul></div>
+      <div><h4>Gaps to get ahead of</h4><ul>${arr(f.gaps).map(g => `<li><b>${esc(g.gap)}</b><br><span class="muted small">${esc(g.how_to_address)}</span></li>`).join('')}</ul></div>
+    </div>
+  </div>
+  <div class="card"><h3>What to prepare</h3><ul class="list-plain">${arr(p.focus_areas).map(a => `<li><b>${esc(a.topic)}</b> <span class="muted small">· ${esc(a.why)}</span><br>${esc(a.how_to_prepare)}</li>`).join('')}</ul></div>
+  <div class="card"><h3>Stories to have ready</h3><p class="muted small">Most interview questions can be answered with one of these. Practise telling each in under 2 minutes.</p>
+    ${arr(p.stories).map(s => `<details class="q"><summary><span class="caret">▸</span><span class="qt">${esc(s.theme)}<br><span class="muted small" style="font-weight:400">${esc(s.cv_example)}</span></span></summary>
+      <div class="body"><div class="star">${['situation','task','action','result'].map(k => `<b>${k[0].toUpperCase() + k.slice(1)}</b><span>${esc((s.star || {})[k])}</span>`).join('')}</div></div></details>`).join('')}
+  </div>
+  ${arr(p.interviewers).length ? `<div class="card"><h3>Your interviewers</h3>${arr(p.interviewers).map(i => `
+    <div class="person"><div class="spread"><b>${esc(i.name)}</b><span class="muted small">${esc(i.role)}</span></div>
+    <p class="mt"><span class="chip accent">Likely focus</span> ${esc(i.likely_focus)}</p>
+    <p><span class="chip">Rapport</span> ${esc(i.rapport_tips)}</p>
+    ${arr(i.questions_to_ask).length ? `<span class="chip">Ask them</span><ul>${arr(i.questions_to_ask).map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}</div>`).join('')}</div>` : ''}
+  ${arr(p.tricky_topics).length ? `<div class="card"><h3>Tricky topics</h3><ul class="list-plain">${arr(p.tricky_topics).map(t => `<li><b>${esc(t.topic)}</b><br>${esc(t.suggested_approach)}</li>`).join('')}</ul></div>` : ''}
+  <div class="grid2">
+    <div class="card"><h3>Questions to ask them</h3><ul>${arr(p.questions_to_ask).map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>
+    <div class="card"><h3>Research checklist</h3><ul>${arr(p.research_checklist).map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>
+  </div>
+  <div class="card"><h3>Your countdown</h3><ul class="list-plain">${arr(p.timeline).map(t => `<li><b>${esc(t.when)}</b><ul>${arr(t.tasks).map(x => `<li>${esc(x)}</li>`).join('')}</ul></li>`).join('')}</ul></div>`;
+}
+
+/* =========================================================
+   Questions
+   ========================================================= */
+let qFilter = 'All', qBusy = false;
+async function genQuestions(count, focus){
+  if (qBusy) return;
+  if (!S.inputs.jd.trim()) { show('setup'); return banner('Add the job description first.'); }
+  qBusy = true; $('#genQ').disabled = true;
+  if (tab === 'questions') renderQuestions();
+  try {
+    const d = await coach('questions', Object.assign(docs(), { count, focus, avoid: S.questions.map(q => q.question) }));
+    arr(d.questions).forEach(q => { if (q && q.question) S.questions.push(Object.assign({ id: uid(), star:false, attempts:[] }, q)); });
+    save(); updateTabs();
+  } catch (e) { banner(esc(e.message), 'err'); }
+  qBusy = false; $('#genQ').disabled = false;
+  if (tab === 'questions') renderQuestions();
+}
+$('#genQ').onclick = () => genQuestions(+$('#qCount').value, $('#qFocus').value.trim());
+function bestScore(q){ const a = arr(q.attempts); return a.length ? Math.max(...a.map(x => x.overall || 0)) : null; }
+function renderQuestions(){
+  const cats = ['All', '★ Starred'].concat(CATS.filter(c => S.questions.some(q => q.category === c)));
+  $('#qFilters').innerHTML = S.questions.length ? cats.map(c => `<button aria-pressed="${c === qFilter}" data-c="${esc(c)}">${esc(c)}</button>`).join('') : '';
+  const list = S.questions.filter(q => qFilter === 'All' || (qFilter === '★ Starred' ? q.star : q.category === qFilter));
+  const wait = qBusy ? `<div class="card empty"><span class="spinner"></span> <span class="muted">Writing questions and model answers from your CV… about a minute.</span></div>` : '';
+  if (!S.questions.length) { $('#qList').innerHTML = wait || `<div class="card empty"><p class="muted">No questions yet. Press <b>Generate</b>.</p></div>`; return; }
+  $('#qList').innerHTML = wait + list.map(q => {
+    const b = bestScore(q);
+    return `<details class="q" data-id="${q.id}"><summary><span class="caret">▸</span>
+      <span class="qt">${esc(q.question)}<br><span class="small" style="font-weight:400">
+      <span class="chip accent">${esc(q.category)}</span>${q.difficulty ? `<span class="chip">${esc(q.difficulty)}</span>` : ''}${q.asked_by ? `<span class="chip">${esc(q.asked_by)}</span>` : ''}${b != null ? `<span class="chip ${b >= 8 ? 'good' : b >= 6 ? 'warn' : 'bad'}">best ${b}/10</span>` : ''}</span></span>
+      <button class="btn ghost sm" data-star title="Star">${q.star ? '★' : '☆'}</button></summary>
+      <div class="body">
+        <h4>Why they ask it</h4><p>${esc(q.why_asked)}</p>
+        <h4>What a good answer shows</h4><p>${esc(q.what_good_looks_like)}</p>
+        <h4>Model answer</h4><div class="answer">${esc(q.model_answer)}</div>
+        ${arr(q.tips).length ? `<h4 class="mt">Tips</h4><ul>${arr(q.tips).map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+        <div class="row mt"><button class="btn primary sm" data-practise>🎙 Practise this one</button><button class="btn ghost sm" data-speak>🔊 Hear the model answer</button><button class="btn ghost sm" data-del>Delete</button></div>
+      </div></details>`;
+  }).join('');
+}
+$('#qFilters').onclick = e => { const b = e.target.closest('button'); if (b) { qFilter = b.dataset.c; renderQuestions(); } };
+$('#qList').onclick = e => {
+  const d = e.target.closest('details.q'); if (!d) return;
+  const q = S.questions.find(x => x.id === d.dataset.id); if (!q) return;
+  if (e.target.closest('[data-star]')) { e.preventDefault(); q.star = !q.star; save(); e.target.closest('[data-star]').textContent = q.star ? '★' : '☆'; }
+  if (e.target.closest('[data-del]')) { S.questions = S.questions.filter(x => x !== q); save(); renderQuestions(); }
+  if (e.target.closest('[data-speak]')) speak(q.model_answer);
+  if (e.target.closest('[data-practise]')) { show('mock'); startMock([q]); }
+};
+
+/* =========================================================
+   Speech: text-to-speech, recording, live transcript, delivery metrics
+   ========================================================= */
+function speak(text, onend){
+  if (!('speechSynthesis' in window)) { onend && onend(); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = S.settings.lang; u.rate = 1;
+  const v = speechSynthesis.getVoices().find(v => v.lang === S.settings.lang) || speechSynthesis.getVoices().find(v => v.lang.startsWith('en'));
+  if (v) u.voice = v;
+  u.onend = u.onerror = () => onend && onend();
+  speechSynthesis.speak(u);
+}
+
+class Recorder {
+  async start(onLevel, onText){
+    this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:true, noiseSuppression:true } });
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = this.ctx.createMediaStreamSource(this.stream);
+    this.node = this.ctx.createScriptProcessor(4096, 1, 1);
+    this.chunks = []; this.rate = this.ctx.sampleRate; this.t0 = performance.now();
+    // pause tracking: silence after speech has started
+    this.spoke = false; this.silentSince = null; this.pauses = []; this.lastLoud = 0; this.firstLoud = null;
+    this.node.onaudioprocess = e => {
+      const d = e.inputBuffer.getChannelData(0);
+      this.chunks.push(new Float32Array(d));
+      let sum = 0; for (let i = 0; i < d.length; i++) sum += d[i] * d[i];
+      const rms = Math.sqrt(sum / d.length), now = (performance.now() - this.t0) / 1000;
+      onLevel && onLevel(Math.min(1, rms * 12));
+      if (rms > 0.02) {
+        if (this.spoke && this.silentSince !== null && now - this.silentSince > 2) this.pauses.push(now - this.silentSince);
+        this.spoke = true; this.silentSince = null; this.lastLoud = now; if (this.firstLoud === null) this.firstLoud = now;
+      } else if (this.spoke && this.silentSince === null) this.silentSince = now;
+    };
+    src.connect(this.node); this.node.connect(this.ctx.destination);
+    // live transcript, where the browser supports it
+    this.text = ''; this.interim = '';
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SR) {
+      this.sr = new SR(); this.sr.lang = S.settings.lang; this.sr.continuous = true; this.sr.interimResults = true;
+      this.sr.onresult = e => {
+        let fin = '', tmp = '';
+        for (let i = 0; i < e.results.length; i++) (e.results[i].isFinal ? (fin += e.results[i][0].transcript + ' ') : (tmp += e.results[i][0].transcript));
+        this.text = fin; this.interim = tmp; onText && onText(fin + tmp);
+      };
+      this.sr.onend = () => { if (this.live) try { this.sr.start(); } catch(e){} }; // Chrome stops after silences
+      this.live = true; try { this.sr.start(); } catch(e){}
+    }
+  }
+  async stop(){
+    this.live = false;
+    if (this.sr) try { this.sr.stop(); } catch(e){}
+    this.node.disconnect(); this.stream.getTracks().forEach(t => t.stop()); await this.ctx.close();
+    const secs = (performance.now() - this.t0) / 1000;
+    await new Promise(r => setTimeout(r, 400)); // let the last recognition result land
+    const text = (this.text + ' ' + this.interim).replace(/\s+/g, ' ').trim();
+    const speaking = this.firstLoud !== null ? Math.max(1, this.lastLoud - this.firstLoud) : secs;
+    return { wav: this.wav(), transcript: text, metrics: metrics(text, speaking, this.pauses) };
+  }
+  wav(){ // downsample to 16 kHz mono, 16-bit PCM WAV, base64
+    const len = this.chunks.reduce((n, c) => n + c.length, 0), all = new Float32Array(len);
+    let o = 0; this.chunks.forEach(c => { all.set(c, o); o += c.length; });
+    const ratio = this.rate / 16000, n = Math.floor(len / ratio), buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (p, s) => { for (let i = 0; i < s.length; i++) v.setUint8(p + i, s.charCodeAt(i)); };
+    w(0,'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+    v.setUint32(24,16000,true); v.setUint32(28,32000,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) { const s = Math.max(-1, Math.min(1, all[Math.floor(i * ratio)])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+    const bytes = new Uint8Array(buf); let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+}
+function metrics(text, secs, pauses){
+  const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+  const low = ' ' + text.toLowerCase().replace(/[^a-z' ]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  const found = {};
+  FILLERS.forEach(f => { const m = low.split(' ' + f + ' ').length - 1; if (m) found[f] = m; });
+  const fillers = Object.values(found).reduce((a, b) => a + b, 0);
+  return { duration_s: Math.round(secs), words, wpm: words && secs > 5 ? Math.round(words / secs * 60) : null, fillers,
+    filler_list: Object.entries(found).map(([k, v]) => `${k} ×${v}`).join(', '),
+    long_pauses: pauses.length, longest_pause_s: pauses.length ? +Math.max(...pauses).toFixed(1) : 0 };
+}
+
+/* =========================================================
+   Mock interview
+   ========================================================= */
+let M = null; // current mock session
+function pickQuestions(n, how){
+  let pool = S.questions.slice();
+  if (how === 'saved') pool = pool.filter(q => q.star);
+  if (how === 'unpractised') pool = pool.filter(q => !arr(q.attempts).length);
+  if (how === 'weak') pool = pool.filter(q => arr(q.attempts).length).sort((a, b) => bestScore(a) - bestScore(b));
+  else pool.sort(() => Math.random() - .5);
+  if (how === 'mix') { // open with motivation, then vary the categories
+    const first = pool.findIndex(q => q.category === 'Motivation & fit');
+    if (first > 0) pool.unshift(pool.splice(first, 1)[0]);
+  }
+  return pool.slice(0, n);
+}
+$('#mStart').onclick = () => {
+  if (!S.questions.length) { show('questions'); return banner('Generate some questions first, then start the mock interview.'); }
+  const qs = pickQuestions(+$('#mLen').value, $('#mPick').value);
+  if (!qs.length) return banner('No questions match that choice yet. Try “A realistic mix”.');
+  startMock(qs);
+};
+function startMock(qs){
+  M = { id: uid(), at: Date.now(), role: S.plan && S.plan.role ? S.plan.role.title : '', qs, i: 0, results: [],
+        speakQ: $('#mSpeak').checked, typed: $('#mType').checked || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) };
+  $('#mockSetup').classList.add('hide'); $('#mockRun').classList.remove('hide');
+  askQuestion();
+}
+function header(){
+  return `<div class="spread small muted"><span>Question ${M.i + 1} of ${M.qs.length}</span><button class="btn ghost sm" id="mQuit">End interview</button></div>`;
+}
+function askQuestion(){
+  const q = M.qs[M.i], run = $('#mockRun');
+  run.innerHTML = `<div class="card">${header()}
+    <div class="stage"><div class="who">${esc(q.asked_by || 'Interviewer')} asks:</div><div class="question">${esc(q.question)}</div>
+    ${M.typed ? `<textarea id="mTyped" placeholder="Type your answer as you would say it…"></textarea><div class="row mt" style="justify-content:center"><button class="btn primary" id="mSubmit">Submit answer</button></div>`
+    : `<div class="row" style="justify-content:center"><button class="btn rec" id="mRec">🎙 Start answering</button><button class="btn ghost" id="mRepeat">🔊 Repeat question</button></div>
+       <div id="mRecUI" class="hide"><div class="row mt" style="justify-content:center"><span class="pulse"></span><span class="timer" id="mTime">0:00</span></div>
+       <div class="level"><i id="mLevel"></i></div><div class="live" id="mLive"></div>
+       <div class="row mt" style="justify-content:center"><button class="btn primary" id="mStop">Finish answer</button></div></div>`}
+    </div></div>`;
+  $('#mQuit').onclick = endMock;
+  if (M.speakQ) speak(q.question);
+  if (M.typed) { $('#mSubmit').onclick = () => { const t = $('#mTyped').value.trim(); if (t) rate(q, { transcript: t, wav: '', metrics: metrics(t, 0, []) }); }; return; }
+  $('#mRepeat').onclick = () => speak(q.question);
+  $('#mRec').onclick = async () => {
+    speechSynthesis && speechSynthesis.cancel();
+    const rec = new Recorder();
+    try { await rec.start(l => { const el = $('#mLevel'); if (el) el.style.width = (l * 100) + '%'; }, t => { const el = $('#mLive'); if (el) el.textContent = t; }); }
+    catch (e) { banner('Microphone access was blocked. Allow the microphone for this site, or tick “Type answers instead”.', 'err'); return; }
+    M.rec = rec;
+    $('#mRec').parentElement.classList.add('hide'); $('#mRecUI').classList.remove('hide');
+    if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) $('#mLive').textContent = 'Recording… (live transcript isn\'t available in this browser; the coach will transcribe it)';
+    const t0 = Date.now();
+    M.tick = setInterval(() => {
+      const s = Math.floor((Date.now() - t0) / 1000), el = $('#mTime');
+      if (el) el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+      if (s >= 210) $('#mStop') && $('#mStop').click(); // 3.5-minute cap
+    }, 250);
+    $('#mStop').onclick = async () => {
+      clearInterval(M.tick); $('#mStop').disabled = true;
+      const r = await rec.stop(); M.rec = null;
+      if (r.metrics.duration_s < 3) { banner('That was very short. Try again when you\'re ready.'); askQuestion(); return; }
+      rate(q, r);
+    };
+  };
+}
+async function rate(q, r){
+  const run = $('#mockRun');
+  run.innerHTML = `<div class="card">${header()}<div class="stage"><span class="spinner"></span> <span class="muted">Listening back and scoring your answer…</span></div></div>`;
+  $('#mQuit').onclick = endMock;
+  let fb;
+  try {
+    fb = await coach('rate', { question: q.question, what_good: q.what_good_looks_like, role: M.role, cv: S.inputs.cv,
+      transcript: r.transcript, audio: r.wav, metrics: r.metrics });
+  } catch (e) {
+    run.innerHTML = `<div class="card"><div class="notice err">${esc(e.message)}</div><div class="row"><button class="btn primary" id="mRetry">Try scoring again</button><button class="btn" id="mSkip">Skip this question</button></div></div>`;
+    $('#mRetry').onclick = () => rate(q, r); $('#mSkip').onclick = next; return;
+  }
+  const sc = fb.scores || {};
+  const res = { qid: q.id, question: q.question, category: q.category, metrics: r.metrics, feedback: fb, typed: !r.wav };
+  M.results.push(res);
+  const stored = S.questions.find(x => x.id === q.id);
+  if (stored) { stored.attempts = arr(stored.attempts).concat({ at: Date.now(), overall: sc.overall }); save(); }
+  run.innerHTML = `<div class="card">${header()}${feedbackHTML(res)}
+    <div class="row mt"><button class="btn primary" id="mNext">${M.i + 1 < M.qs.length ? 'Next question →' : 'See my results'}</button><button class="btn" id="mAgain">Try this question again</button>
+    ${fb.better_answer ? '<button class="btn ghost" id="mHear">🔊 Hear the better answer</button>' : ''}</div></div>`;
+  $('#mQuit').onclick = endMock; $('#mNext').onclick = next;
+  $('#mAgain').onclick = () => { M.results.pop(); askQuestion(); };
+  if ($('#mHear')) $('#mHear').onclick = () => speak(fb.better_answer);
+}
+function scoreBox(label, v){ const c = v >= 8 ? 'good' : v >= 6 ? 'warn' : 'bad';
+  return `<div class="score"><div class="small muted">${label}</div><div class="n">${v == null ? '–' : esc(v)}<small>/10</small></div><div class="meter"><i style="width:${(v || 0) * 10}%;background:var(--${c})"></i></div></div>`; }
+function feedbackHTML(res){
+  const fb = res.feedback, sc = fb.scores || {}, m = res.metrics || {}, f = fb.feedback || {};
+  return `<h3 class="mt">${esc(res.question)}</h3>
+    <div class="scores">${scoreBox('Overall', sc.overall)}${scoreBox('Content', sc.content)}${scoreBox('Structure', sc.structure)}${scoreBox('Confidence', sc.confidence)}${scoreBox('Communication', sc.communication)}</div>
+    ${res.typed ? '' : `<div class="metrics"><span>Length <b>${Math.floor(m.duration_s / 60)}:${String(m.duration_s % 60).padStart(2, '0')}</b></span>
+      ${m.wpm ? `<span>Pace <b>${m.wpm}</b> wpm</span>` : ''}<span>Fillers <b>${m.fillers}</b>${m.filler_list ? ' (' + esc(m.filler_list) + ')' : ''}</span><span>Long pauses <b>${m.long_pauses}</b></span></div>`}
+    <p><b>${esc(fb.summary)}</b></p>
+    <div class="grid2">
+      <div><h4>What worked</h4><ul>${arr(fb.strengths).map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>
+      <div><h4>To improve</h4><ul>${arr(fb.improvements).map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>
+    </div>
+    <details class="q"><summary><span class="caret">▸</span><span class="qt">Detailed feedback</span></summary><div class="body">
+      ${['content','structure','confidence','communication'].map(k => f[k] ? `<p><b>${k[0].toUpperCase() + k.slice(1)}.</b> ${esc(f[k])}</p>` : '').join('')}</div></details>
+    <details class="q"><summary><span class="caret">▸</span><span class="qt">What you said</span></summary><div class="body"><div class="answer">${esc(fb.transcript || '')}</div></div></details>
+    ${fb.better_answer ? `<details class="q" open><summary><span class="caret">▸</span><span class="qt">A stronger version of your answer</span></summary><div class="body"><div class="answer">${esc(fb.better_answer)}</div></div></details>` : ''}`;
+}
+function next(){ M.i++; if (M.i < M.qs.length) askQuestion(); else endMock(); }
+async function endMock(){
+  if (M && M.rec) { clearInterval(M.tick); try { await M.rec.stop(); } catch(e){} M.rec = null; }
+  speechSynthesis && speechSynthesis.cancel();
+  if (M && M.results.length) {
+    const avg = k => Math.round(M.results.reduce((a, r) => a + ((r.feedback.scores || {})[k] || 0), 0) / M.results.length * 10) / 10;
+    const s = { id: M.id, at: M.at, role: M.role, n: M.results.length,
+      avg: { overall: avg('overall'), content: avg('content'), structure: avg('structure'), confidence: avg('confidence'), communication: avg('communication') },
+      results: M.results.map(r => ({ question: r.question, category: r.category, metrics: r.metrics, typed: r.typed,
+        scores: r.feedback.scores, summary: r.feedback.summary, improvements: r.feedback.improvements, transcript: r.feedback.transcript, better_answer: r.feedback.better_answer })) };
+    S.sessions.unshift(s); S.sessions = S.sessions.slice(0, 50); save(); updateTabs();
+    const worst = Object.entries(s.avg).filter(([k]) => k !== 'overall').sort((a, b) => a[1] - b[1])[0];
+    $('#mockRun').innerHTML = `<div class="card"><h2>Interview complete</h2><p class="muted">${s.n} question${s.n > 1 ? 's' : ''} answered.</p>
+      <div class="scores">${scoreBox('Overall', s.avg.overall)}${scoreBox('Content', s.avg.content)}${scoreBox('Structure', s.avg.structure)}${scoreBox('Confidence', s.avg.confidence)}${scoreBox('Communication', s.avg.communication)}</div>
+      <p>Your biggest opportunity is <b>${esc(worst[0])}</b>. ${esc(TIPS[worst[0]])}</p>
+      <div class="row"><button class="btn primary" id="mNew">Another round</button><button class="btn" onclick="show('history')">See progress</button></div></div>`;
+    $('#mNew').onclick = resetMock;
+  } else resetMock();
+  M = null;
+}
+function resetMock(){ $('#mockRun').classList.add('hide'); $('#mockSetup').classList.remove('hide'); $('#mockRun').innerHTML = ''; }
+const TIPS = {
+  content: 'Before answering, name the one point you want them to remember, and back it with a specific example and a measurable result.',
+  structure: 'Use STAR: a sentence of Situation, a sentence of Task, most of your time on Action, and finish with the Result and what you learned.',
+  confidence: 'Say “I” not “we” for your own work, drop hedges like “I think maybe”, and pause instead of filling silence. Slow, steady and slightly louder reads as confident.',
+  communication: 'Keep answers to 1–2 minutes, lead with the headline, and replace fillers with a short pause. Record yourself and listen back once.'
+};
+
+/* =========================================================
+   Progress
+   ========================================================= */
+function renderHistory(){
+  const out = $('#histOut'), ss = S.sessions;
+  if (!ss.length) { out.innerHTML = `<div class="card empty"><p class="muted">No mock interviews yet.</p><button class="btn primary" onclick="show('mock')">Start one</button></div>`; return; }
+  const all = ss.flatMap(s => s.results), practised = S.questions.filter(q => arr(q.attempts).length).length;
+  const last = ss[0].avg, first = ss[ss.length - 1].avg;
+  const delta = ss.length > 1 ? Math.round((last.overall - first.overall) * 10) / 10 : null;
+  out.innerHTML = `<div class="kpis">
+      <div class="kpi"><div class="l">Mock interviews</div><div class="v">${ss.length}</div></div>
+      <div class="kpi"><div class="l">Answers given</div><div class="v">${all.length}</div></div>
+      <div class="kpi"><div class="l">Questions practised</div><div class="v">${practised}<span class="muted small"> / ${S.questions.length}</span></div></div>
+      <div class="kpi"><div class="l">Latest overall</div><div class="v">${last.overall}<span class="muted small">/10</span></div>${delta != null ? `<div class="small ${delta >= 0 ? 'muted' : ''}">${delta >= 0 ? '+' : ''}${delta} since your first</div>` : ''}</div>
+    </div>
+    <div class="card"><h3>Sessions</h3><div class="tablewrap"><table class="hist"><thead><tr><th>Date</th><th>Role</th><th>Qs</th><th>Overall</th><th>Content</th><th>Structure</th><th>Confidence</th><th>Communication</th></tr></thead><tbody>
+    ${ss.map(s => `<tr data-s="${s.id}" style="cursor:pointer"><td>${new Date(s.at).toLocaleDateString()}</td><td>${esc(s.role || '–')}</td><td>${s.n}</td><td><b>${s.avg.overall}</b></td><td>${s.avg.content}</td><td>${s.avg.structure}</td><td>${s.avg.confidence}</td><td>${s.avg.communication}</td></tr>`).join('')}
+    </tbody></table></div><p class="muted small mt mb0">Select a session to review your answers.</p></div><div id="histDetail"></div>`;
+  out.querySelector('tbody').onclick = e => {
+    const tr = e.target.closest('tr'); if (!tr) return;
+    const s = ss.find(x => x.id === tr.dataset.s);
+    $('#histDetail').innerHTML = `<div class="card"><h3>${new Date(s.at).toLocaleString()}</h3>${s.results.map(r =>
+      `<div class="person">${feedbackHTML({ question: r.question, metrics: r.metrics, typed: r.typed, feedback: { scores: r.scores, summary: r.summary, improvements: r.improvements, transcript: r.transcript, better_answer: r.better_answer } })}</div>`).join('')}</div>`;
+    $('#histDetail').scrollIntoView({ behavior: 'smooth' });
+  };
+}
+
+/* =========================================================
+   Settings
+   ========================================================= */
+function applyTheme(){ if (S.settings.theme) document.documentElement.dataset.theme = S.settings.theme; else delete document.documentElement.dataset.theme; }
+function fillSettings(){ $('#sUrl').value = S.settings.url; $('#sLang').value = S.settings.lang; $('#sTheme').value = S.settings.theme; }
+$('#sSave').onclick = () => {
+  const u = $('#sUrl').value.trim();
+  if (u && !/^https:\/\//.test(u)) return banner('The Worker address should start with https://', 'err');
+  S.settings.url = u; S.settings.lang = $('#sLang').value; S.settings.theme = $('#sTheme').value; save(); applyTheme();
+  banner(u ? 'Saved. The coach will use your Worker.' : 'Saved. Demo mode is on until you add a Worker address.', 'info');
+};
+$('#sExport').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }));
+  a.download = 'hirepilot.json'; a.click();
+};
+$('#sWipe').onclick = () => { if (confirm('Delete everything, including your history? This can\'t be undone.')) { const st = S.settings; S = blank(); S.settings = st; save(); fillForm(); updateTabs(); banner('All data deleted.', 'info'); } };
+
+function updateTabs(){
+  const has = { plan: !!S.plan, questions: !!S.plan || S.questions.length > 0, mock: S.questions.length > 0 };
+  $$('#tabs button').forEach(b => { if (b.dataset.tab in has) b.disabled = !has[b.dataset.tab]; });
+}
+
+/* =========================================================
+   Sample data and demo-mode responses
+   ========================================================= */
+const SAMPLE = { inputs: {
+  jd: `Senior Data Analyst, Customer Analytics - Harbourline Bank, Singapore
+
+About the role
+Join our Customer Analytics team to turn data from 4 million retail customers into decisions. You will partner with product, marketing and risk teams to measure campaigns, build dashboards leaders actually use, and explore how machine learning and generative AI can improve customer experience.
+
+Responsibilities
+- Own analysis end to end: frame the business question, pull and clean data (SQL, Python), analyse, and present recommendations to senior stakeholders
+- Design and evaluate A/B tests and campaign measurement
+- Build and maintain Tableau / Power BI dashboards
+- Prototype predictive models (churn, propensity) with data science colleagues
+- Mentor two junior analysts
+
+Requirements
+- 6+ years in analytics, ideally in banking, insurance or consumer businesses
+- Strong SQL and Python; experience with a BI tool
+- Able to explain complex findings simply to non-technical audiences
+- Experience with experimentation and statistics
+- Nice to have: exposure to LLM / generative AI use cases, cloud data platforms`,
+  cv: `Alex Chan - Data Analyst
+Sydney, Australia | Open to relocating to Singapore
+
+EXPERIENCE
+Senior Analyst, Insights & Analytics - Southern Cross Insurance, Sydney (2021-present)
+- Built a customer churn model in Python that identified at-risk policyholders; retention campaign reduced churn by 11% in its first year
+- Rebuilt executive KPI dashboard in Power BI, cutting monthly reporting time from 3 days to 4 hours
+- Led measurement for 20+ marketing campaigns using holdout groups
+- Coach one graduate analyst
+
+Analyst - Pacific Retail Group, Hong Kong (2016-2021)
+- SQL reporting on sales and loyalty data for 300 stores
+- Designed the first A/B test framework for email campaigns
+
+Business Analyst - Kowloon Logistics, Hong Kong (2012-2016)
+
+EDUCATION
+Master of Data Science, University of Sydney (2020)
+BBA, Hong Kong Polytechnic University (2012)
+
+SKILLS: SQL, Python (pandas, scikit-learn), Power BI, Tableau, statistics, stakeholder management. Languages: English, Cantonese, Mandarin.
+Interests: football (5-a-side captain), golf.`,
+  stage: 'First interview with hiring manager',
+  notes: 'Relocating from Sydney; want to show I understand the Singapore market',
+  people: [{ name: 'Priya Raman', title: 'Head of Customer Analytics, Harbourline Bank',
+    profile: `Head of Customer Analytics at Harbourline Bank (2020-present). Previously analytics lead at a regional e-commerce company. Posts often about building data-literate teams, experimentation culture and responsible AI in banking. Speaker at a Singapore fintech festival on "From dashboards to decisions". NUS graduate, statistics.` }]
+} };
+
+const DEMO = {
+  plan: () => ({
+    role: { title: 'Senior Data Analyst, Customer Analytics', company: 'Harbourline Bank', field: 'Banking / analytics', seniority: 'Senior individual contributor with mentoring',
+      summary: 'They need someone who can own an analysis from business question to decision, and present it to senior people. Experimentation, stakeholder influence and a view on AI matter more than the tools themselves.' },
+    fit: { score: 82, verdict: 'A strong match. Your churn model and campaign measurement map directly to the role; the gaps are banking-specific context and Singapore market knowledge.',
+      strengths: [ { point: 'End-to-end predictive modelling with business impact', evidence: 'Churn model → 11% churn reduction at Southern Cross' },
+        { point: 'Experimentation and campaign measurement', evidence: '20+ campaigns with holdouts; built an A/B framework at Pacific Retail' },
+        { point: 'Dashboards leaders use', evidence: 'Executive Power BI rebuild, 3 days → 4 hours' },
+        { point: 'Regional, multilingual background', evidence: 'Hong Kong and Sydney experience; English, Cantonese, Mandarin' } ],
+      gaps: [ { gap: 'No direct banking experience', how_to_address: 'Frame insurance as a close regulated neighbour: customer lifetime value, churn and risk work transfer directly.' },
+        { gap: 'Generative AI exposure', how_to_address: 'Prepare one concrete idea for using an LLM in customer analytics, with the risks and how you would measure it.' },
+        { gap: 'Relocation', how_to_address: 'State your timeline and why Singapore, briefly and positively.' } ] },
+    focus_areas: [ { topic: 'Experiment design', why: 'Named in the JD and a theme in Priya\'s posts', how_to_prepare: 'Be ready to talk through sample size, holdouts, novelty effects and what you do when results are inconclusive.' },
+      { topic: 'Stakeholder storytelling', why: '"Explain complex findings simply" is a core requirement', how_to_prepare: 'Prepare a 60-second version of your churn story for a non-technical executive.' },
+      { topic: 'Singapore retail banking', why: 'Shows commitment to the move', how_to_prepare: 'Read Harbourline\'s latest annual report and MAS guidance on AI (FEAT principles).' },
+      { topic: 'Leading juniors', why: 'You would mentor two analysts', how_to_prepare: 'Have an example of coaching your graduate analyst, including a mistake and how you handled it.' } ],
+    stories: [ { theme: 'Biggest impact', cv_example: 'Churn model at Southern Cross', star: { situation: 'Rising policy lapses', task: 'Find who is likely to leave and why', action: 'Built and validated a model, partnered with marketing on a retention offer', result: '11% lower churn in year one' } },
+      { theme: 'Influencing without authority', cv_example: 'Executive dashboard rebuild', star: { situation: 'Leaders distrusted a slow monthly report', task: 'Win agreement on one set of KPIs', action: 'Ran workshops, prototyped in Power BI', result: 'Reporting from 3 days to 4 hours; adopted by the exec team' } },
+      { theme: 'Building something new', cv_example: 'A/B framework at Pacific Retail', star: { situation: 'Campaigns judged on gut feel', task: 'Introduce testing', action: 'Designed a simple framework and trained marketers', result: '[number] campaigns tested in the first year' } } ],
+    interviewers: [ { name: 'Priya Raman', role: 'Head of Customer Analytics', likely_focus: 'How you turn analysis into decisions, experimentation rigour, and your views on responsible AI.',
+      rapport_tips: 'Reference her "dashboards to decisions" talk naturally. She values data literacy, so mention how you upskilled marketers.', questions_to_ask: [ 'What would success look like for this role in the first six months?', 'How does the team decide which AI use cases are worth pursuing?' ] } ],
+    tricky_topics: [ { topic: 'Why leave Australia?', suggested_approach: 'Keep it forward-looking: Singapore\'s role as a regional hub for banking and AI, and your Asian background.' },
+      { topic: 'Salary expectations', suggested_approach: 'Research Singapore ranges for senior analysts in banks; give a range and say you are flexible on the overall package.' } ],
+    questions_to_ask: [ 'Which decision in the last year was most shaped by this team\'s work?', 'How are analysts and data scientists split on modelling work?', 'What is the biggest data challenge the team faces right now?', 'How do the two junior analysts like to be supported?' ],
+    research_checklist: [ 'Harbourline\'s latest results and digital strategy', 'MAS FEAT principles for AI in finance', 'Priya Raman\'s recent LinkedIn posts', 'Competitor digital banks in Singapore' ],
+    timeline: [ { when: '3 days before', tasks: [ 'Finish research', 'Write your 4 stories in STAR form' ] }, { when: '2 days before', tasks: [ 'Two full mock interviews here', 'Rework your weakest answer' ] },
+      { when: 'The day before', tasks: [ 'Test your video setup', 'Rehearse your 60-second introduction' ] }, { when: 'On the day', tasks: [ 'Log in 10 minutes early', 'Have water, your CV and your questions to ask in front of you' ] } ]
+  }),
+  questions: b => ({ questions: [
+    { category: 'Motivation & fit', asked_by: 'Priya Raman', difficulty: 'Easy', question: 'Tell me about yourself and why this role at Harbourline.',
+      why_asked: 'To hear your story in two minutes and check you have a real reason for this bank and this move.', what_good_looks_like: 'A short career arc that ends at this role, one or two proof points, and a specific reason for Harbourline and Singapore.',
+      model_answer: 'I\'m a data analyst with ten years across logistics, retail and insurance in Hong Kong and Sydney. Most recently at Southern Cross Insurance I built a churn model that helped cut churn by 11%, and rebuilt our executive dashboard so reporting went from three days to four hours.\n\nWhat ties my career together is turning data into decisions people actually act on, which is exactly how your team describes its mission. I\'m drawn to Harbourline because [specific reason from your research], and Singapore because it\'s where banking and AI are moving fastest in the region. I\'d bring hands-on experience with churn and experimentation, plus the ability to explain it to leaders.',
+      tips: [ 'Keep it under 2 minutes', 'End with why this role, not with your hobbies' ] },
+    { category: 'Behavioural', asked_by: '', difficulty: 'Medium', question: 'Tell me about a time your analysis changed a senior leader\'s decision.',
+      why_asked: 'The job is influence, not just analysis.', what_good_looks_like: 'A specific decision, what the leader believed before, how you persuaded them, and the measurable outcome.',
+      model_answer: 'At Southern Cross, our marketing director wanted to send a discount to every customer up for renewal. I suspected most of that spend would go to people who would have stayed anyway. I built a churn model and showed that [x]% of the risk sat in a small segment. I proposed a test: target the high-risk group only, with a holdout. I presented it as a one-page story with a single chart rather than the model details. She agreed to the test, it cut churn by 11% in that group at a fraction of the cost, and targeted retention became the standard approach.',
+      tips: [ 'Say "I" for your own actions', 'Quantify the result' ] },
+    { category: 'Role-specific', asked_by: 'Priya Raman', difficulty: 'Hard', question: 'An A/B test on a new app feature shows a 2% uplift, but it isn\'t statistically significant. What do you recommend?',
+      why_asked: 'Tests experimentation judgement, not just statistics knowledge.', what_good_looks_like: 'Checks power and sample size, considers the business cost of being wrong, and gives a clear recommendation.',
+      model_answer: 'First I\'d check whether the test was powered to detect a 2% effect. If not, "not significant" mostly means "we don\'t know yet". I\'d look at the confidence interval, check for problems like novelty effects or uneven assignment, and look at segments without fishing for results.\n\nThen it\'s a business call. If the feature is cheap and low-risk, I\'d suggest extending the test to reach the sample we need. If it\'s costly, I\'d be upfront that we can\'t claim an uplift. Either way I\'d present the range of likely outcomes rather than a yes/no.',
+      tips: [ 'Show judgement, not a textbook', 'End with a recommendation' ] },
+    { category: 'Situational', asked_by: '', difficulty: 'Medium', question: 'One of your junior analysts has sent a report to a stakeholder with a significant error. What do you do?',
+      why_asked: 'Checks leadership, ownership and calm under pressure.', what_good_looks_like: 'Fix it fast with the stakeholder, support the analyst privately, and improve the process.',
+      model_answer: 'First, fix the impact: I\'d check the size of the error, then contact the stakeholder quickly with a corrected version and a plain explanation. I\'d take ownership as the senior person on the team. Then I\'d sit down with the analyst privately, walk through how it happened without blame, and agree a peer-review step for external reports. When my graduate analyst at Southern Cross made a similar mistake, [what happened], and we introduced a checklist that [result].',
+      tips: [ 'Protect the relationship and the junior', 'Mention a process fix' ] },
+    { category: 'Culture & values', asked_by: 'Priya Raman', difficulty: 'Medium', question: 'Where do you think generative AI could help our customers, and what worries you about it?',
+      why_asked: 'Priya writes about responsible AI; she wants balanced, practical thinking.', what_good_looks_like: 'One concrete use case, how you\'d measure it, and real risks such as privacy, bias and wrong answers.',
+      model_answer: 'One practical use is summarising customer feedback and complaints at scale so product teams see themes weekly rather than quarterly. I\'d measure it against a manually coded sample for accuracy. My worries are privacy, since customer text must stay within approved systems, and confident but wrong outputs. So I\'d keep a human reviewing anything customer-facing and align with the MAS FEAT principles.',
+      tips: [ 'Be concrete', 'Show you know banking regulation matters' ] },
+    { category: 'Curveball', asked_by: '', difficulty: 'Easy', question: 'What would your 5-a-side teammates say is your biggest weakness?',
+      why_asked: 'Tests self-awareness and honesty using your CV.', what_good_looks_like: 'A real but manageable weakness, and what you\'re doing about it.',
+      model_answer: 'They\'d probably say I try to do too much myself, like tracking back to defend when I should trust the defence. I do the same at work: I used to redo parts of analyses rather than delegate. Coaching our graduate analyst has helped. I now agree the approach up front and review at checkpoints, which has freed up about [x] hours a week for me.',
+      tips: [ 'Light tone, serious answer' ] }
+  ].slice(0, Math.max(3, b.count || 6)).filter(q => !arr(b.avoid).includes(q.question)) }),
+  rate: b => {
+    const m = b.metrics || {}, words = m.words || (b.transcript || '').split(/\s+/).length;
+    const clamp = x => Math.max(1, Math.min(10, Math.round(x)));
+    const content = clamp(3 + words / 40), comm = clamp(8 - (m.fillers || 0) / 3 - Math.abs((m.wpm || 140) - 140) / 30);
+    const conf = clamp(7 - (m.long_pauses || 0) / 2 - (m.fillers || 0) / 5), struct = clamp(words > 120 ? 7 : 5);
+    return { transcript: b.transcript || '(demo mode: no transcript available in this browser)',
+      scores: { content, structure: struct, confidence: conf, communication: comm, overall: clamp((content + struct + conf + comm) / 4) },
+      summary: 'Demo mode: these scores are estimated from your length, pace, fillers and pauses only. Connect the Worker for real AI feedback on what you said and how you said it.',
+      feedback: { content: 'Connect the Worker to get feedback on the substance of your answer.', structure: 'Aim for Situation → Task → Action → Result.', confidence: `You had ${m.long_pauses || 0} long pause(s).`, communication: `You used ${m.fillers || 0} filler word(s)${m.wpm ? ' at ' + m.wpm + ' words per minute' : ''}.` },
+      strengths: [ 'You completed an answer out loud, which is the hardest habit to build' ], improvements: [ 'Lead with a one-sentence headline', 'Finish with a measurable result' ],
+      better_answer: '' };
+  }
+};
+
+/* =========================================================
+   Start
+   ========================================================= */
+applyTheme(); fillForm(); updateTabs(); show('setup');
+if ('speechSynthesis' in window) speechSynthesis.getVoices(); // warm up voice list
+</script>
+</body>
+</html>
