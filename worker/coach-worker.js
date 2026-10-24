@@ -98,7 +98,8 @@ Reply with JSON only, no other text, in exactly this shape:
   "research_checklist": [ "" ],
   "timeline": [ { "when": "e.g. 3 days before", "tasks": [""] } ]
 }
-Give 3-6 strengths, 2-5 gaps, 4-7 focus areas, 4-6 stories, one entry per interviewer (empty array if none), 5-8 questions to ask, and 3-5 timeline steps ending with "On the day".`;
+Give 3-4 strengths, 2-3 gaps, 3-5 focus areas, 3-4 stories, one entry per interviewer (empty array if none), 4-5 questions to ask, and 3-4 timeline steps ending with "On the day".
+Be concise: keep every text value to one or two short sentences, and each STAR part to one sentence.`;
 }
 
 function questionsPrompt(b){
@@ -115,7 +116,7 @@ ${context(b)}
 ---
 
 Model answers are written in the first person as the candidate, built from real experience in the CV, use the STAR structure for behavioural and
-situational questions, and take 1-2 minutes to say aloud (about 150-250 words). Use [placeholders] rather than inventing facts.
+situational questions, and take about a minute to say aloud (120-180 words). Use [placeholders] rather than inventing facts.
 
 Reply with JSON only, no other text, in exactly this shape:
 { "questions": [ {
@@ -195,7 +196,7 @@ function readBody(body){
     stage: str(body.stage, 200),
     notes: str(body.notes, 2000),
     focus: str(body.focus, 500),
-    count: Math.max(3, Math.min(20, parseInt(body.count, 10) || 10)),
+    count: Math.max(3, Math.min(20, parseInt(body.count, 10) || 6)),
     avoid: Array.isArray(body.avoid) ? body.avoid.slice(0, 60).map(q => str(q, 300)).filter(Boolean) : [],
     interviewers: (Array.isArray(body.interviewers) ? body.interviewers : []).slice(0, MAX_INTERVIEWERS).map(p => ({
       name: str(p && p.name, 120), title: str(p && p.title, 200), profile: str(p && p.profile, MAX_PROFILE)
