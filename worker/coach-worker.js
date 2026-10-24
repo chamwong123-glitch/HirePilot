@@ -11,6 +11,7 @@
 */
 
 const MODELS = {
+  cv:        'anthropic/claude-sonnet-5',  // CV review, virtual hiring panel and tailored CV
   plan:      'anthropic/claude-sonnet-5',  // reads JD + CV + interviewer profiles, writes the prep plan
   questions: 'anthropic/claude-sonnet-5',  // mock questions with model answers
   rate:      'google/gemini-3.8-flash'     // listens to the recorded answer and rates it
@@ -100,6 +101,97 @@ Reply with JSON only, no other text, in exactly this shape:
 }
 Give 3-4 strengths, 2-3 gaps, 3-5 focus areas, 3-4 stories, one entry per interviewer (empty array if none), 4-5 questions to ask, and 3-4 timeline steps ending with "On the day".
 Be concise: keep every text value to one or two short sentences, and each STAR part to one sentence.`;
+}
+
+function cvPrompt(b){
+  const answers = b.answers.length
+    ? `\n\nTHE CANDIDATE HAS CONFIRMED THE FOLLOWING (treat as true facts you may use in the CV):\n` +
+      b.answers.map(a => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n')
+    : '';
+  const rules = `CV rules: never invent employers, titles, dates, degrees, numbers or skills. Only use what is in the CV or what the candidate confirmed. ` +
+    `Where a number would strengthen a bullet but none is known, write a placeholder like [x%] for the candidate to fill in. ` +
+    `Keep the candidate's real job history and dates. Mirror the job description's wording where it is honestly true. ` +
+    `Put the most relevant experience and skills first. Aim for 2 pages at most. Write in the spelling of the job's country.`;
+  const cvFormat = `Write tailored_cv as plain text using this light markup: first line "# Full Name", then a contact line, ` +
+    `then sections starting with "## " (e.g. ## Summary, ## Key skills, ## Experience, ## Education). ` +
+    `In Experience write each role as "### Job title, Company, City | Start - End" followed by bullet lines starting with "- ".`;
+
+  if (b.mode === 'update') {
+    return `${COACH}
+
+You earlier tailored this candidate's CV for the job below. They have now answered questions about extra experience.
+Revise the tailored CV to make honest use of every relevant "yes" answer. Ignore "no" answers, and do not add anything they did not confirm.
+
+${context(b)}
+
+---
+
+CURRENT TAILORED CV:
+${b.current_cv}${answers}
+
+---
+
+${rules}
+${cvFormat}
+
+Reply with JSON only, no other text, in exactly this shape:
+{
+  "tailored_cv": "",
+  "changes": [ { "change": "what you changed", "why": "why it helps for this job" } ],
+  "resolved": [ "names of missing skills that the answers now cover" ],
+  "questions": [ { "skill": "", "question": "a NEW follow-up yes/no question, only if an answer opened up something worth asking", "why": "" } ]
+}
+Give 0-3 follow-up questions; use an empty array if there is nothing more worth asking.`;
+  }
+
+  return `${COACH}
+
+Review the candidate's CV against the job below, the way a real hiring team would, then write a tailored version of the CV for this job.
+
+${context(b)}${answers}
+
+---
+
+1. THE 10-SECOND SCAN. Recruiters and hiring managers spend about 10 seconds on a first look at a CV.
+   Describe what each of these two readers would actually take in during those 10 seconds (the top third of page 1, job titles,
+   company names, dates, and anything bold or numeric), whether they would keep reading, and the quickest fixes:
+   - HR / talent acquisition: screens for must-have requirements, keywords, job titles, stability, gaps, location or right to work.
+   - The hiring manager: screens for relevant results, scope and level, domain and tools, and "can this person do my job from day one".
+
+2. STRENGTHS AND GAPS. Which requirements the CV clearly shows (with the evidence), and which are missing or not visible.
+   Mark each gap "Must-have" or "Nice-to-have", and say whether it is likely a real gap or just not written down.
+
+3. THE VIRTUAL HIRING PANEL. Four people discuss the candidate: the hiring manager, HR / talent acquisition, the hiring manager's boss,
+   and a future teammate. Use the interviewer profiles provided where they match a role (e.g. the hiring manager's LinkedIn);
+   otherwise infer a realistic persona for that seat from the job description, and leave "name" empty.
+   Each gives the pros and cons of this candidate from their own seat (the boss thinks about strategy, budget and long-term potential;
+   the teammate about collaboration, skills they would rely on, and workload) and a verdict.
+
+4. EXPERIENCE QUESTIONS. Ask 4-6 short yes/no questions about experience the job needs that the CV does not show but the candidate
+   might well have (e.g. "Have you ever presented findings to senior executives?"). Each must target a gap that matters.
+
+5. THE TAILORED CV. ${rules}
+
+${cvFormat}
+
+Reply with JSON only, no other text, in exactly this shape:
+{
+  "match": { "score": 0-100, "verdict": "one sentence" },
+  "ten_second": {
+    "hr":              { "sees": "what they take in, in one or two sentences", "decision": "Shortlist | Maybe | Reject", "fixes": [ "" ] },
+    "hiring_manager":  { "sees": "", "decision": "Shortlist | Maybe | Reject", "fixes": [ "" ] }
+  },
+  "strengths": [ { "skill": "", "evidence": "" } ],
+  "missing":   [ { "skill": "", "importance": "Must-have | Nice-to-have", "likely": "Real gap | Not written down", "suggestion": "" } ],
+  "keywords":  { "present": [ "" ], "missing": [ "" ] },
+  "panel": [ { "seat": "Hiring manager | HR / Talent acquisition | Hiring manager's boss | Future teammate", "name": "",
+               "pros": [ "" ], "cons": [ "" ], "verdict": "Strong yes | Yes | Maybe | No", "comment": "one sentence in their voice" } ],
+  "questions": [ { "skill": "", "question": "", "why": "" } ],
+  "tailored_cv": "",
+  "changes": [ { "change": "", "why": "" } ]
+}
+Give 3-6 strengths, 2-6 missing items, up to 10 keywords each, exactly 4 panel members, 2-3 fixes per reader, 2-3 pros and cons each,
+and up to 8 changes. Keep every text value short.`;
 }
 
 function questionsPrompt(b){
@@ -194,7 +286,11 @@ function readBody(body){
     jd: str(body.jd, MAX_FIELD),
     cv: str(body.cv, MAX_FIELD),
     stage: str(body.stage, 200),
-    notes: str(body.notes, 2000),
+    notes: str(body.notes, 4000),
+    mode: body.mode === 'update' ? 'update' : 'full',
+    current_cv: str(body.current_cv, MAX_FIELD),
+    answers: (Array.isArray(body.answers) ? body.answers : []).slice(0, 30).map(a => ({
+      question: str(a && a.question, 300), answer: str(a && a.answer, 1000) })).filter(a => a.question && a.answer),
     focus: str(body.focus, 500),
     count: Math.max(3, Math.min(20, parseInt(body.count, 10) || 6)),
     avoid: Array.isArray(body.avoid) ? body.avoid.slice(0, 60).map(q => str(q, 300)).filter(Boolean) : [],
@@ -203,6 +299,7 @@ function readBody(body){
     })).filter(p => p.name || p.profile)
   };
   if (!b.jd) return null;
+  if (kind === 'cv' && (!b.cv || (b.mode === 'update' && !b.current_cv))) return null;
   return b;
 }
 
@@ -228,14 +325,14 @@ export default {
     if (b === 'too_large') return reply(413, { error: 'too_large' }, origin);
     if (!b) return reply(400, { error: 'bad_request' }, origin);
 
-    const prompt = b.kind === 'plan' ? planPrompt(b) : b.kind === 'questions' ? questionsPrompt(b) : ratePrompt(b);
+    const prompt = b.kind === 'cv' ? cvPrompt(b) : b.kind === 'plan' ? planPrompt(b) : b.kind === 'questions' ? questionsPrompt(b) : ratePrompt(b);
     const content = b.audio
       ? [{ type: 'text', text: prompt }, { type: 'input_audio', input_audio: { data: b.audio, format: 'wav' } }]
       : prompt;
     const payload = {
       model: MODELS[b.kind],
       messages: [{ role: 'user', content }],
-      max_tokens: b.kind === 'questions' ? 12000 : b.kind === 'plan' ? 6000 : 3000,
+      max_tokens: b.kind === 'questions' || b.kind === 'cv' ? 12000 : b.kind === 'plan' ? 6000 : 3000,
       temperature: b.kind === 'rate' ? 0.2 : 0.5
     };
     if (b.kind === 'rate') payload.reasoning = { effort: 'low' };

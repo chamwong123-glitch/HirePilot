@@ -122,6 +122,26 @@ table.hist th{color:var(--muted);font-weight:600}
 .tablewrap{overflow-x:auto}
 dialog{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);max-width:560px;width:calc(100% - 32px);padding:20px}
 dialog::backdrop{background:rgba(0,0,0,.4)}
+.panel{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.panel{grid-template-columns:1fr}}
+.seat{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface-2)}
+.seat .pc{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.92rem}
+@media (max-width:480px){.seat .pc{grid-template-columns:1fr}}
+.seat ul{padding-left:1.1em;margin:.2em 0 0}
+.pro li::marker{content:"+ ";color:var(--good);font-weight:700}
+.con li::marker{content:"− ";color:var(--bad);font-weight:700}
+.ask{border-top:1px solid var(--border);padding:12px 0}
+.ask:first-of-type{border-top:0}
+.ask textarea{min-height:70px;margin-top:8px}
+.yn button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.cvdoc{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px 28px;max-height:720px;overflow:auto;font-size:.93rem}
+.cvdoc h1{font-size:1.4rem;margin:0 0 .2em}
+.cvdoc h2{font-size:.95rem;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:3px;margin:1.1em 0 .5em}
+.cvdoc h3{font-size:.95rem;margin:.9em 0 .2em}
+.cvdoc p{margin:0 0 .4em}
+.cvdoc ul{margin:.2em 0 .5em}
+mark.ph{background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:0 3px}
+#cvEdit{min-height:520px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
 .hide{display:none!important}
 .mt{margin-top:12px} .mb0{margin-bottom:0}
 @media (max-width:600px){ .bar{flex-wrap:wrap;padding:8px 0} nav.tabs{margin-left:0;width:100%} .stage .question{font-size:1.12rem} }
@@ -132,7 +152,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <div class="wrap bar">
     <div class="brand"><span class="dot"></span>HirePilot</div>
     <nav class="tabs" id="tabs">
-      <button data-tab="setup">1. Your interview</button>
+      <button data-tab="setup">1. CV &amp; job</button>
       <button data-tab="plan">2. Prep plan</button>
       <button data-tab="questions">3. Questions</button>
       <button data-tab="mock">4. Mock interview</button>
@@ -148,8 +168,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <!-- 1. SETUP -->
   <section data-view="setup">
     <div class="card">
-      <h2>Tell us about the interview</h2>
-      <p class="muted">Paste text or upload files (PDF, Word or text). Everything stays in this browser until you ask the coach to analyse it.</p>
+      <h2>Your CV and the job</h2>
+      <p class="muted">Paste text or upload files (PDF, Word or text). HirePilot reviews your CV the way the hiring team would, writes a version tailored to this job, then prepares you for the interview. Everything stays in this browser until you ask the coach to analyse it.</p>
       <div class="grid2">
         <div>
           <div class="spread"><label class="f" for="jd">Job description <span class="chip bad">required</span></label>
@@ -157,7 +177,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
           <textarea id="jd" placeholder="Paste the full job ad: responsibilities, requirements, about the company…"></textarea>
         </div>
         <div>
-          <div class="spread"><label class="f" for="cv">Your CV / résumé</label>
+          <div class="spread"><label class="f" for="cv">Your CV / résumé <span class="chip bad">required</span></label>
             <label class="file btn ghost sm">Upload<input type="file" data-target="cv" accept=".pdf,.docx,.txt,.md"></label></div>
           <textarea id="cv" placeholder="Paste your CV. Model answers are built from your real experience, so the more detail the better."></textarea>
         </div>
@@ -183,17 +203,19 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     </div>
 
     <div class="card">
-      <div class="spread"><h3 class="mb0">Interviewers <span class="muted small">(optional)</span></h3>
-        <button class="btn sm" id="addPerson">+ Add interviewer</button></div>
-      <p class="muted small mt">Paste public professional info, e.g. their LinkedIn headline, About section, experience and recent posts. The coach uses it to predict what they'll focus on and how to build rapport.</p>
+      <div class="spread"><h3 class="mb0">Hiring manager &amp; interviewers <span class="muted small">(optional)</span></h3>
+        <button class="btn sm" id="addPerson">+ Add person</button></div>
+      <p class="muted small mt">Start with the <b>hiring manager's LinkedIn profile</b>: copy their headline, About, experience and recent posts (or save the profile as PDF and upload it). Add anyone else you know will interview you. The coach uses this to see your CV through their eyes and to predict what they'll focus on.</p>
       <div id="people"></div>
     </div>
 
     <div class="row">
-      <button class="btn primary" id="analyse">Build my prep plan →</button>
+      <button class="btn primary" id="cvGo">Review &amp; tailor my CV</button>
+      <button class="btn" id="analyse">Build my interview prep plan →</button>
       <button class="btn ghost" id="loadSample">Fill in a sample</button>
       <button class="btn ghost" id="clearAll">Start over</button>
     </div>
+    <div id="cvOut" class="mt"></div>
   </section>
 
   <!-- 2. PLAN -->
@@ -272,7 +294,7 @@ const KEY = 'hirepilot.v1';
 const CATS = ['Motivation & fit','Behavioural','Role-specific','Situational','Culture & values','Curveball'];
 const FILLERS = ['um','uh','erm','er','ah','like','you know','sort of','kind of','basically','actually','literally','i mean','so yeah'];
 const blank = () => ({ inputs:{ jd:'', cv:'', stage:'First interview with hiring manager', notes:'', people:[] },
-  plan:null, questions:[], sessions:[], settings:{ url:'', lang:'en-US', theme:'' } });
+  cv:null, plan:null, questions:[], sessions:[], settings:{ url:'', lang:'en-US', theme:'' } });
 let S = load();
 function load(){
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.inputs) return Object.assign(blank(), s); } catch(e){}
@@ -345,9 +367,9 @@ $$('input[type=file][data-target]').forEach(inp => inp.onchange = async e => {
 $('#clearAll').onclick = () => {
   if (!confirm('Clear the job, CV, interviewers, plan and questions? Your practice history is kept.')) return;
   const keep = { sessions:S.sessions, settings:S.settings };
-  S = Object.assign(blank(), keep); save(); fillForm(); updateTabs();
+  S = Object.assign(blank(), keep); save(); fillForm(); updateTabs(); renderCV();
 };
-$('#loadSample').onclick = () => { S.inputs = JSON.parse(JSON.stringify(SAMPLE.inputs)); save(); fillForm(); };
+$('#loadSample').onclick = () => { S.inputs = JSON.parse(JSON.stringify(SAMPLE.inputs)); S.cv = null; save(); fillForm(); renderCV(); };
 
 /* ---- file reading: PDF via pdf.js, Word via mammoth, loaded only when needed ---- */
 const libs = {};
@@ -395,8 +417,13 @@ async function coach(kind, body){
   if (!res.ok || !j.data) throw new Error(ERRORS[j.error] || 'The coach had a problem (' + (j.error || res.status) + '). Please try again.');
   return j.data;
 }
+/* the CV the interview coach works from: the tailored one once it exists, unless the user switched that off */
+function prepCV(){ return S.cv && S.cv.tailored_cv && S.cv.useForPrep !== false ? S.cv.tailored_cv : S.inputs.cv; }
+function confirmed(){ return S.cv ? arr(S.cv.questions).filter(q => q.sent && q.answer === 'yes') : []; }
 function docs(){
-  return { jd:S.inputs.jd, cv:S.inputs.cv, stage:S.inputs.stage, notes:S.inputs.notes,
+  const extra = confirmed().map(q => `${q.question} Yes: ${q.detail || '(no details)'}`).join(' ');
+  return { jd:S.inputs.jd, cv:prepCV(), stage:S.inputs.stage,
+    notes:[S.inputs.notes, extra && 'Experience the candidate confirmed: ' + extra].filter(Boolean).join('\n'),
     interviewers:S.inputs.people.filter(p => p.name || p.profile) };
 }
 function busy(el, msg){ el.innerHTML = `<div class="card empty"><span class="spinner"></span> <span class="muted">${esc(msg)}</span></div>`; }
@@ -409,6 +436,159 @@ $('#analyse').onclick = async () => {
     S.plan = await coach('plan', docs()); S.plan._at = Date.now(); save(); updateTabs(); renderPlan();
   } catch (e) { $('#planOut').innerHTML = ''; banner(esc(e.message), 'err'); }
 };
+
+/* =========================================================
+   CV review, virtual hiring panel and tailored CV
+   ========================================================= */
+const decisionChip = d => { const v = String(d || ''); const c = /reject|^no/i.test(v) ? 'bad' : /maybe/i.test(v) ? 'warn' : 'good'; return `<span class="chip ${c}">${esc(v || '–')}</span>`; };
+let cvBusy = false, cvEditing = false;
+$('#cvGo').onclick = async () => {
+  readForm(); save();
+  if (S.inputs.jd.trim().length < 80) return banner('Please paste the job description first (at least a few lines).');
+  if (S.inputs.cv.trim().length < 200) return banner('Please paste or upload your CV first.');
+  if (S.cv && !confirm('Run a fresh review? This replaces the current tailored CV and your answers to the experience questions.')) return;
+  cvBusy = true; cvEditing = false; busy($('#cvOut'), 'Your virtual hiring panel is reading your CV… about a minute.');
+  $('#cvOut').scrollIntoView({ behavior: 'smooth' });
+  try {
+    const d = await coach('cv', Object.assign(docs(), { cv: S.inputs.cv, mode: 'full' }));
+    d.questions = arr(d.questions).map(q => Object.assign({ id: uid(), answer: '', detail: '', sent: false }, q));
+    d.resolved = []; d.useForPrep = true; d._at = Date.now();
+    S.cv = d; save();
+  } catch (e) { banner(esc(e.message), 'err'); }
+  cvBusy = false; renderCV();
+};
+async function updateCV(){
+  const qs = arr(S.cv.questions).filter(q => !q.sent && q.answer);
+  if (!qs.length) return banner('Answer at least one question with Yes or No first.');
+  if (qs.some(q => q.answer === 'yes' && !q.detail.trim()) && !confirm('Some “Yes” answers have no details. The CV will be stronger if you add a sentence about what you did. Update anyway?')) return;
+  const btn = $('#cvUpdate'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Updating your CV…';
+  try {
+    const answers = arr(S.cv.questions).filter(q => q.answer).map(q => ({ question: q.question,
+      answer: q.answer === 'yes' ? 'Yes. ' + (q.detail || '') : 'No.' }));
+    const d = await coach('cv', Object.assign(docs(), { cv: S.inputs.cv, mode: 'update', current_cv: S.cv.tailored_cv, answers }));
+    qs.forEach(q => q.sent = true);
+    if (d.tailored_cv) S.cv.tailored_cv = d.tailored_cv;
+    if (arr(d.changes).length) S.cv.changes = arr(d.changes).concat(arr(S.cv.changes)).slice(0, 20);
+    S.cv.resolved = Array.from(new Set(arr(S.cv.resolved).concat(arr(d.resolved))));
+    arr(d.questions).forEach(q => { if (q && q.question) S.cv.questions.push(Object.assign({ id: uid(), answer: '', detail: '', sent: false }, q)); });
+    save(); renderCV(); banner('Your tailored CV has been updated with your answers.', 'info');
+    $('#cvDocCard').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) { banner(esc(e.message), 'err'); btn.disabled = false; btn.textContent = 'Update my CV with these answers'; }
+}
+
+/* the tailored CV comes back as light markup: # name, ## section, ### role, - bullet */
+function cvHTML(text){
+  const inline = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\[([^\]]{1,80})\]/g, '<mark class="ph">[$1]</mark>');
+  let html = '', list = false;
+  String(text || '').split('\n').forEach(raw => {
+    const l = raw.trim();
+    const bullet = /^[-•*]\s+/.test(l);
+    if (list && !bullet) { html += '</ul>'; list = false; }
+    if (!l) return;
+    if (bullet) { if (!list) { html += '<ul>'; list = true; } html += `<li>${inline(l.replace(/^[-•*]\s+/, ''))}</li>`; }
+    else if (l.startsWith('### ')) html += `<h3>${inline(l.slice(4))}</h3>`;
+    else if (l.startsWith('## ')) html += `<h2>${inline(l.slice(3))}</h2>`;
+    else if (l.startsWith('# ')) html += `<h1>${inline(l.slice(2))}</h1>`;
+    else html += `<p>${inline(l)}</p>`;
+  });
+  return html + (list ? '</ul>' : '');
+}
+function cvFileName(ext){
+  const name = (String(S.cv.tailored_cv).match(/^#\s*(.+)$/m) || [])[1] || 'CV';
+  const role = S.cv.role || (S.plan && S.plan.role && S.plan.role.title) || '';
+  return (name + ' CV' + (role ? ' - ' + role : '')).replace(/[\\/:*?"<>|]+/g, '').slice(0, 80) + ext;
+}
+const PRINT_CSS = `body{font:11pt/1.4 Calibri,Arial,sans-serif;color:#111;max-width:780px;margin:24px auto;padding:0 24px}
+h1{font-size:20pt;margin:0 0 4px}h2{font-size:11pt;text-transform:uppercase;letter-spacing:.05em;color:#2f5bd3;border-bottom:1px solid #ccc;padding-bottom:2px;margin:14px 0 6px}
+h3{font-size:11pt;margin:10px 0 2px}p{margin:0 0 4px}ul{margin:2px 0 6px;padding-left:18px}li{margin:1px 0}mark{background:#fff3c4}`;
+function cvStandalone(){ return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(cvFileName(''))}</title><style>${PRINT_CSS}</style></head><body>${cvHTML(S.cv.tailored_cv)}</body></html>`; }
+
+function renderCV(){
+  const out = $('#cvOut'), c = S.cv;
+  if (cvBusy) return;
+  if (!c) { out.innerHTML = ''; return; }
+  const t = c.ten_second || {}, m = c.match || {}, resolved = arr(c.resolved);
+  const fitClass = m.score >= 75 ? 'good' : m.score >= 50 ? 'warn' : 'bad';
+  const reader = (title, r) => { r = r || {}; return `<div class="seat"><div class="spread"><b>${title}</b>${decisionChip(r.decision)}</div>
+    <p class="mt small">${esc(r.sees)}</p>${arr(r.fixes).length ? `<b class="small">Quick fixes</b><ul class="small">${arr(r.fixes).map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}</div>`; };
+  const open = arr(c.questions).filter(q => !q.sent), done = arr(c.questions).filter(q => q.sent);
+  out.innerHTML = `
+  ${demo() ? '<div class="notice info">Demo mode: this is sample output. Add your Worker address in Settings for a real review.</div>' : ''}
+  <div class="card">
+    <div class="spread"><h2 class="mb0">How your CV lands for this job</h2><span class="chip ${fitClass}">${esc(m.score)}/100 match</span></div>
+    <div class="meter"><i style="width:${Math.max(0, Math.min(100, +m.score || 0))}%;background:var(--${fitClass})"></i></div>
+    <p class="mt mb0">${esc(m.verdict)}</p>
+  </div>
+
+  <div class="card"><h3>The 10-second scan</h3>
+    <p class="muted small">A first look at a CV takes about 10 seconds: the top third of page 1, job titles, company names, dates, and anything bold or numeric. Here's what each reader takes away.</p>
+    <div class="panel">${reader('HR / talent acquisition', t.hr)}${reader('Hiring manager', t.hiring_manager)}</div>
+  </div>
+
+  <div class="card"><div class="grid2">
+    <div><h3>Your strengths for this role</h3><ul class="list-plain">${arr(c.strengths).map(x => `<li><b>${esc(x.skill)}</b><br><span class="muted small">${esc(x.evidence)}</span></li>`).join('')}</ul></div>
+    <div><h3>Missing or not visible</h3><ul class="list-plain">${arr(c.missing).map(x => { const ok = resolved.some(r => r.toLowerCase() === String(x.skill).toLowerCase());
+      return `<li><b>${esc(x.skill)}</b> ${ok ? '<span class="chip good">✓ now in your CV</span>' : `<span class="chip ${/must/i.test(x.importance) ? 'bad' : 'warn'}">${esc(x.importance)}</span>`}${x.likely ? `<span class="chip">${esc(x.likely)}</span>` : ''}<br><span class="muted small">${esc(x.suggestion)}</span></li>`; }).join('')}</ul></div>
+  </div>
+  ${c.keywords ? `<div class="mt"><b class="small">Job keywords in your CV</b><div class="mt">${arr(c.keywords.present).map(k => `<span class="chip good">${esc(k)}</span>`).join(' ') || '<span class="muted small">none</span>'}</div>
+    <b class="small mt" style="display:block">Job keywords missing</b><div class="mt">${arr(c.keywords.missing).map(k => `<span class="chip bad">${esc(k)}</span>`).join(' ') || '<span class="muted small">none</span>'}</div></div>` : ''}
+  </div>
+
+  <div class="card"><h3>Your virtual hiring panel</h3>
+    <p class="muted small">Four people who would have a say in hiring you, each looking at your CV from their own seat.</p>
+    <div class="panel">${arr(c.panel).map(p => `<div class="seat">
+      <div class="spread"><div><b>${esc(p.seat)}</b>${p.name ? `<br><span class="muted small">${esc(p.name)}</span>` : ''}</div>${decisionChip(p.verdict)}</div>
+      ${p.comment ? `<p class="mt small"><i>“${esc(p.comment)}”</i></p>` : ''}
+      <div class="pc"><div><b class="small">Pros</b><ul class="pro">${arr(p.pros).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div><b class="small">Cons</b><ul class="con">${arr(p.cons).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div></div>`).join('')}</div>
+  </div>
+
+  <div class="card"><h3>Do you have this experience?</h3>
+    <p class="muted small">The job asks for things your CV doesn't show yet. If you've done them, say so and add a sentence about what you did: the coach will work it into your tailored CV. It will never add anything you don't confirm.</p>
+    ${open.length ? open.map(q => `<div class="ask" data-q="${q.id}">
+      <div class="spread"><b>${esc(q.question)}</b><div class="row yn"><button class="btn sm" data-a="yes" aria-pressed="${q.answer === 'yes'}">Yes</button><button class="btn sm" data-a="no" aria-pressed="${q.answer === 'no'}">No</button></div></div>
+      <div class="muted small">${esc(q.why)}</div>
+      <textarea data-detail class="${q.answer === 'yes' ? '' : 'hide'}" placeholder="What did you do, where, and what was the result? e.g. “Presented quarterly churn insights to the CFO and COO at Southern Cross; led to a $2m retention budget.”">${esc(q.detail)}</textarea>
+    </div>`).join('') + `<div class="row mt"><button class="btn primary" id="cvUpdate">Update my CV with these answers</button></div>`
+    : '<p class="muted mb0">No open questions. Run a fresh review if your CV or the job changes.</p>'}
+    ${done.length ? `<details class="q mt"><summary><span class="caret">▸</span><span class="qt">Answered (${done.length})</span></summary><div class="body"><ul class="list-plain">${done.map(q => `<li>${esc(q.question)} <span class="chip ${q.answer === 'yes' ? 'good' : ''}">${q.answer === 'yes' ? 'Yes' : 'No'}</span>${q.detail ? `<br><span class="muted small">${esc(q.detail)}</span>` : ''}</li>`).join('')}</ul></div></details>` : ''}
+  </div>
+
+  <div class="card" id="cvDocCard">
+    <div class="spread"><h3 class="mb0">Your tailored CV</h3>
+      <div class="row"><button class="btn sm" id="cvEditBtn">${cvEditing ? 'Done editing' : 'Edit'}</button><button class="btn sm" id="cvCopy">Copy text</button><button class="btn sm" id="cvWord">Download Word</button><button class="btn sm" id="cvPdf">Save as PDF</button></div></div>
+    <p class="muted small mt">Fill in anything <mark class="ph">[highlighted]</mark> with your real figures, and check every line is true before you send it.</p>
+    ${cvEditing ? `<textarea id="cvEdit">${esc(c.tailored_cv)}</textarea>` : `<div class="cvdoc">${cvHTML(c.tailored_cv)}</div>`}
+    <label class="row small mt"><input type="checkbox" id="cvForPrep" ${c.useForPrep !== false ? 'checked' : ''}> Use this tailored CV for the interview prep plan, questions and model answers</label>
+  </div>
+
+  ${arr(c.changes).length ? `<div class="card"><h3>What we changed and why</h3><ul class="list-plain">${arr(c.changes).map(x => `<li><b>${esc(x.change)}</b><br><span class="muted small">${esc(x.why)}</span></li>`).join('')}</ul></div>` : ''}
+  <div class="row"><button class="btn primary" onclick="$('#analyse').click()">Next: build my interview prep plan →</button></div>`;
+}
+$('#cvOut').addEventListener('click', e => {
+  const c = S.cv; if (!c) return;
+  const yn = e.target.closest('[data-a]');
+  if (yn) { const box = yn.closest('[data-q]'), q = c.questions.find(x => x.id === box.dataset.q);
+    q.answer = yn.dataset.a; save();
+    box.querySelectorAll('[data-a]').forEach(b => b.setAttribute('aria-pressed', b === yn));
+    box.querySelector('[data-detail]').classList.toggle('hide', q.answer !== 'yes');
+    if (q.answer === 'yes') box.querySelector('[data-detail]').focus(); return; }
+  const id = e.target.closest('button') && e.target.closest('button').id;
+  if (id === 'cvUpdate') updateCV();
+  if (id === 'cvEditBtn') { cvEditing = !cvEditing; renderCV(); $('#cvDocCard').scrollIntoView(); }
+  if (id === 'cvCopy') navigator.clipboard.writeText(c.tailored_cv).then(() => banner('CV text copied.', 'info'), () => banner('Could not copy. Use Edit and copy the text yourself.', 'err'));
+  if (id === 'cvWord') { const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + cvStandalone()], { type: 'application/msword' })); a.download = cvFileName('.doc'); a.click(); }
+  if (id === 'cvPdf') { const w = window.open('', '_blank');
+    if (!w) return banner('Allow pop-ups for this site to save as PDF.', 'err');
+    w.document.write(cvStandalone()); w.document.close(); w.focus(); setTimeout(() => w.print(), 300); }
+});
+$('#cvOut').addEventListener('input', e => {
+  const c = S.cv; if (!c) return;
+  if (e.target.id === 'cvEdit') { c.tailored_cv = e.target.value; save(); }
+  if (e.target.matches('[data-detail]')) { const q = c.questions.find(x => x.id === e.target.closest('[data-q]').dataset.q); q.detail = e.target.value; save(); }
+});
+$('#cvOut').addEventListener('change', e => { if (e.target.id === 'cvForPrep' && S.cv) { S.cv.useForPrep = e.target.checked; save(); } });
 
 /* =========================================================
    Prep plan
@@ -659,7 +839,7 @@ async function rate(q, r){
   $('#mQuit').onclick = endMock;
   let fb;
   try {
-    fb = await coach('rate', { question: q.question, what_good: q.what_good_looks_like, role: M.role, cv: S.inputs.cv,
+    fb = await coach('rate', { question: q.question, what_good: q.what_good_looks_like, role: M.role, cv: prepCV(),
       transcript: r.transcript, audio: r.wav, metrics: r.metrics });
   } catch (e) {
     run.innerHTML = `<div class="card"><div class="notice err">${esc(e.message)}</div><div class="row"><button class="btn primary" id="mRetry">Try scoring again</button><button class="btn" id="mSkip">Skip this question</button></div></div>`;
@@ -766,7 +946,7 @@ $('#sExport').onclick = () => {
   a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }));
   a.download = 'hirepilot.json'; a.click();
 };
-$('#sWipe').onclick = () => { if (confirm('Delete everything, including your history? This can\'t be undone.')) { const st = S.settings; S = blank(); S.settings = st; save(); fillForm(); updateTabs(); banner('All data deleted.', 'info'); } };
+$('#sWipe').onclick = () => { if (confirm('Delete everything, including your history? This can\'t be undone.')) { const st = S.settings; S = blank(); S.settings = st; save(); fillForm(); updateTabs(); renderCV(); banner('All data deleted.', 'info'); } };
 
 function updateTabs(){
   const has = { plan: !!S.plan, questions: !!S.plan || S.questions.length > 0, mock: S.questions.length > 0 };
@@ -823,7 +1003,75 @@ Interests: football (5-a-side captain), golf.`,
     profile: `Head of Customer Analytics at Harbourline Bank (2020-present). Previously analytics lead at a regional e-commerce company. Posts often about building data-literate teams, experimentation culture and responsible AI in banking. Speaker at a Singapore fintech festival on "From dashboards to decisions". NUS graduate, statistics.` }]
 } };
 
+const DEMO_CV = `# Alex Chan
+Sydney, Australia (relocating to Singapore) | alex.chan@email.com | linkedin.com/in/alexchan
+
+## Summary
+Senior data analyst with 10 years in insurance, retail and logistics across Sydney and Hong Kong. Builds churn and propensity models, runs campaign experiments, and turns analysis into decisions for senior leaders. Fluent in English, Cantonese and Mandarin.
+
+## Key skills
+- SQL, Python (pandas, scikit-learn), statistics and A/B testing
+- Power BI, Tableau, executive dashboards
+- Customer churn and propensity modelling
+- Stakeholder storytelling and coaching junior analysts
+
+## Experience
+### Senior Analyst, Insights & Analytics, Southern Cross Insurance, Sydney | 2021 - Present
+- Built a Python churn model to flag at-risk policyholders; the retention campaign it guided cut churn by 11% in year one
+- Measured 20+ marketing campaigns with holdout groups, giving marketing a reliable read on [$x] of annual spend
+- Rebuilt the executive KPI dashboard in Power BI, cutting monthly reporting from 3 days to 4 hours
+- Coach a graduate analyst on SQL, experiment design and presenting to stakeholders
+
+### Analyst, Pacific Retail Group, Hong Kong | 2016 - 2021
+- Designed the company's first A/B testing framework for email campaigns, adopted for [x] campaigns a year
+- Delivered SQL reporting on sales and loyalty data across 300 stores
+
+### Business Analyst, Kowloon Logistics, Hong Kong | 2012 - 2016
+
+## Education
+- Master of Data Science, University of Sydney (2020)
+- BBA, Hong Kong Polytechnic University (2012)`;
+
 const DEMO = {
+  cv: b => b.mode === 'update' ? {
+    tailored_cv: DEMO_CV.replace('- Coach a graduate analyst', '- Presented churn and campaign insights to the executive committee each quarter\n- Coach a graduate analyst'),
+    changes: [ { change: 'Added a bullet on presenting to the executive committee', why: 'The job asks you to present to senior stakeholders; HR now finds it in the first job.' } ],
+    resolved: [ 'Presenting to senior stakeholders' ], questions: []
+  } : {
+    match: { score: 78, verdict: 'A strong analytics match; the gaps are banking context, generative AI and visible evidence of senior-stakeholder work.' },
+    ten_second: {
+      hr: { sees: 'Data analyst, 10 years, insurance and retail. No banking employer, and Sydney-based, so HR wonders about relocation and right to work.', decision: 'Maybe',
+        fixes: [ 'Put "Relocating to Singapore" in the header', 'Change the title line to "Senior Data Analyst" to match the job', 'Add "A/B testing" and "Tableau" to a skills line near the top' ] },
+      hiring_manager: { sees: 'An 11% churn reduction catches the eye, but it is buried in bullet one; no mention of experiments at scale or mentoring.', decision: 'Shortlist',
+        fixes: [ 'Open with a 2-line summary that leads with the churn result', 'Quantify the campaign measurement work', 'Mention coaching the graduate analyst' ] }
+    },
+    strengths: [ { skill: 'Predictive modelling with business impact', evidence: 'Churn model → 11% lower churn' }, { skill: 'Experimentation', evidence: '20+ campaigns with holdouts; built an A/B framework' },
+      { skill: 'Dashboards for leaders', evidence: 'Executive Power BI dashboard, 3 days → 4 hours' }, { skill: 'SQL and Python', evidence: 'Used across three roles' } ],
+    missing: [ { skill: 'Banking or financial services', importance: 'Nice-to-have', likely: 'Real gap', suggestion: 'Frame insurance as regulated financial services in your summary.' },
+      { skill: 'Presenting to senior stakeholders', importance: 'Must-have', likely: 'Not written down', suggestion: 'Add who you presented to and what they decided.' },
+      { skill: 'Generative AI / LLM use cases', importance: 'Nice-to-have', likely: 'Not written down', suggestion: 'Mention any LLM prototype or course.' },
+      { skill: 'Cloud data platforms', importance: 'Nice-to-have', likely: 'Not written down', suggestion: 'Name the platform your data lives on, if any.' } ],
+    keywords: { present: [ 'SQL', 'Python', 'Power BI', 'Tableau', 'churn', 'A/B test' ], missing: [ 'propensity', 'stakeholders', 'generative AI', 'cloud', 'mentor' ] },
+    panel: [
+      { seat: 'Hiring manager', name: 'Priya Raman', verdict: 'Yes', comment: 'The churn story is exactly the decision-driving work I talk about. I want to hear how they influence people.',
+        pros: [ 'Proven churn modelling with results', 'Experiment-minded' ], cons: [ 'No banking context', 'Little evidence of presenting to executives' ] },
+      { seat: 'HR / Talent acquisition', name: '', verdict: 'Maybe', comment: 'Strong profile, but I need to confirm the relocation and visa position before I put them forward.',
+        pros: [ 'Ten years of steady experience', 'Languages suit our regional customers' ], cons: [ 'Overseas candidate', 'Title says "Senior Analyst" not "Senior Data Analyst"' ] },
+      { seat: "Hiring manager's boss", name: '', verdict: 'Yes', comment: 'Someone who has moved a retention number is worth meeting. Can they grow into leading the team?',
+        pros: [ 'Commercial impact, not just reports', 'Regional experience across HK and Australia' ], cons: [ 'No people-management track record yet', 'Unclear view on AI strategy' ] },
+      { seat: 'Future teammate', name: '', verdict: 'Strong yes', comment: 'Someone who already builds the dashboards and runs the tests would take real load off us.',
+        pros: [ 'Hands-on SQL and Python', 'Has coached a junior before' ], cons: [ 'May be used to a smaller data stack', 'Will need time to learn bank systems' ] } ],
+    questions: [
+      { skill: 'Presenting to senior stakeholders', question: 'Have you presented your analysis to senior executives (e.g. C-suite or a leadership committee)?', why: 'The job requires it, and HR scans for it.' },
+      { skill: 'Generative AI / LLM use cases', question: 'Have you used or prototyped anything with ChatGPT, Claude or another LLM at work?', why: 'Listed as a nice-to-have, and the hiring manager posts about responsible AI.' },
+      { skill: 'Cloud data platforms', question: 'Have you worked with a cloud data platform such as Snowflake, BigQuery, Databricks or Azure?', why: 'Listed as a nice-to-have.' },
+      { skill: 'Banking or financial services', question: 'Have you worked on any credit, lending, payments or risk data?', why: 'Closest bridge to banking experience.' } ],
+    tailored_cv: DEMO_CV,
+    changes: [ { change: 'Added a 3-line summary leading with the 11% churn result', why: 'Both readers see your biggest win in the first 10 seconds.' },
+      { change: 'Added "relocating to Singapore" to the header', why: 'Answers HR\'s first question before they ask it.' },
+      { change: 'Moved skills above experience and used the job\'s wording', why: 'Matches the keywords HR and applicant tracking systems scan for.' },
+      { change: 'Added [placeholders] where a number would help', why: 'Numbers are what the eye catches on a fast scan.' } ]
+  },
   plan: () => ({
     role: { title: 'Senior Data Analyst, Customer Analytics', company: 'Harbourline Bank', field: 'Banking / analytics', seniority: 'Senior individual contributor with mentoring',
       summary: 'They need someone who can own an analysis from business question to decision, and present it to senior people. Experimentation, stakeholder influence and a view on AI matter more than the tools themselves.' },
@@ -894,7 +1142,7 @@ const DEMO = {
 /* =========================================================
    Start
    ========================================================= */
-applyTheme(); fillForm(); updateTabs(); show('setup');
+applyTheme(); fillForm(); updateTabs(); show('setup'); renderCV();
 if ('speechSynthesis' in window) speechSynthesis.getVoices(); // warm up voice list
 </script>
 </body>

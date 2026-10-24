@@ -2,7 +2,12 @@
 
 An AI interview coach for any job seeker, in any field.
 
-1. **Your interview.** Paste or upload the job description, your CV, and your interviewers' public profiles (e.g. from LinkedIn).
+1. **CV & job.** Paste or upload the job description, your CV, and the hiring manager's (and any interviewers') public LinkedIn profile. HirePilot then:
+   - runs the **10-second scan**: what HR and the hiring manager each take in from a 10-second first look, whether they'd shortlist you, and the quickest fixes
+   - lists your **strengths** and the **missing skills** (must-have vs nice-to-have, real gap vs not written down), plus job keywords found and missing
+   - convenes a **virtual hiring panel** (the hiring manager, HR, the hiring manager's boss and a future teammate), each giving pros, cons and a verdict
+   - asks **"Do you have this experience?"** questions about gaps; answer Yes with a sentence of detail and it works that into your CV, never adding anything you don't confirm
+   - writes a **tailored CV** you can edit, copy, download as Word or save as PDF, with [placeholders] highlighted where a number would help
 2. **Prep plan.** See how well you fit, the strengths to lead with, the gaps to get ahead of, the stories to prepare (in STAR form), what each interviewer is likely to focus on, tricky topics, questions to ask, and a countdown to the day.
 3. **Questions.** Get tailored mock questions (motivation, behavioural, role-specific, situational, culture, curveball), each with why it's asked, what a good answer shows, and a model answer built from *your* CV.
 4. **Mock interview.** The interviewer reads each question aloud and you answer out loud. The AI listens to your recording and scores **content**, **structure**, **confidence** and **communication** out of 10. The app also measures your pace, filler words and long pauses, then gives you a stronger version of your own answer.
@@ -24,6 +29,7 @@ Open `index.html` in Chrome or Edge and choose **Fill in a sample**. With no Wor
 
 | Step | What happens | Model (via OpenRouter) |
 |---|---|---|
+| CV review & tailored CV | JD + CV + profiles (+ your answers) → 10-second scan, panel, gaps, tailored CV | `anthropic/claude-sonnet-5` |
 | Prep plan | JD + CV + profiles → JSON plan | `anthropic/claude-sonnet-5` |
 | Questions | JD + CV + profiles → questions with model answers | `anthropic/claude-sonnet-5` |
 | Rating | 16 kHz WAV recording + browser transcript + delivery metrics → scores and feedback | `google/gemini-3.8-flash` (listens to the audio, so it can judge tone and confidence) |
